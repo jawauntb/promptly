@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Notepad for Browsing the Web</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter&family=Krona+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="brand-area" id="brand-area">
+                <div class="logo-area">
+                    <img src="/images/todo3.png" alt="Promptly Logo" class="logo"/>
+                    <div class="spinning-logo"></div>
+                </div>
+                <h1>Promptly</h1>
+            </div>
+            <div id="check-site-button" class="check-site-button">
+                <button id="analyzeButton" class="ellipse">Check Site</button>
+                <div class="bubble" id="bubble1"></div>
+                <div class="bubble" id="bubble2"></div>
+                <div class="bubble" id="bubble3"></div>
+                <div class="bubble" id="bubble4"></div>
+                <!-- Add more bubbles as needed -->
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="input-area">
+                <input type="text" id="goalInput" placeholder="Type something & press 'enter'..." class="text-input" />
+            </div>
+        </main>
+        <section id="meta-item" class="meta-item">
+            <div class="meta-item-content" id="meta-item-content">
+                <!-- The meta-items will be dynamically loaded here -->
+            </div>
+            <div class="meta-item-buttons" id="meta-item-buttons">
+                <div class="meta-item-run"><i class="fa-solid fa-play"></i></div>
+                <div class="meta-item-clear"><i class="fa-solid fa-x"></i></div>
+                <div class="meta-item-copy"><i class="fa-regular fa-copy"></i></div>
+            </div>
+        </section>
+        <section id="goalList" class="goal-items">
+            <!-- The goals will be dynamically loaded here -->
+        </section>
+        <div id="feedback"></div>
+    </div>
+
+    <script src="scripts.js"></script>
+</body>
+
+</html>
