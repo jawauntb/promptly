@@ -372,6 +372,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function displayFeedback(feedbackList) {
         const feedbackDiv = document.getElementById('feedback');
+        feedbackDiv.style.visibility = 'visible';
         feedbackDiv.innerHTML = '';
         if (!feedbackList.length) {
             const p = document.createElement("p");
@@ -400,7 +401,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-
     async function isContentRelevantToGoal(content, goal, callback) {
         // console.log('isContentRelevantToGoal', content, goal);
         const relevanceRequestPayload = {
@@ -422,7 +422,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    
     async function makeAPIRequest(payload, callback) {
         fetch('https://emojipt-jawaunbrown.replit.app/promptly', {
             method: 'POST',
@@ -597,10 +596,12 @@ document.addEventListener("DOMContentLoaded", function() {
             if (selectedGoals.includes(goalText)) {
                 // If the goal is already selected, deselect it
                 selectedGoals.splice(selectedGoals.indexOf(goalText), 1);
+                checkIcon.style.color = "white";
                 checkButton.classList.remove('selected');
             } else {
                 // Otherwise, select the goal
                 selectedGoals.push(goalText);
+                checkIcon.style.color = "black";
                 checkButton.classList.add('selected');
             }
             updateMetaItem();
