@@ -1,7 +1,9 @@
 html{
     border-radius: 10px !important;
 }
-
+h1{
+    color: #0b2261;
+}
 body {
     background-color: #fffefe;
     font-family: 'Inter', sans-serif;
@@ -173,7 +175,7 @@ h1{
 .check-site-button .ellipse {
     width: 100%; /* Adjusted to take full width of the button */
     height: 40px; /* Adjusted to take full height of the button */
-    background: #bac7cc;
+    background: #0b2261;
     border-radius: 30px; /* Added to make it an ellipse */
     /* border: 1px dotted #000000; */
     font-family: 'Inter';
@@ -184,7 +186,7 @@ h1{
     font-size: 15px;
     line-height: 15px;
     text-align: center;
-    color: #384f45!important;
+    color: #ffffff!important;
     border: none; /* Add this line to remove the border */
 }
 
