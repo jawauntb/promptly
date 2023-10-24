@@ -192,6 +192,7 @@ h1{
 
 .check-site-button:hover {
     filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.15));
+    transform: scale(1.1);
 }
 
 /* new bubble anim to replace above */
@@ -346,22 +347,27 @@ li {
 
 .meta-item-span:hover .meta-delete-button {
     visibility: visible; /* Show on hover of the parent span */
+    transform: scale(1.1);
 }
 
 .meta-delete-button:hover  {
     filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.25));
+    transform: scale(1.1);
 }
 
 .meta-item-clear:hover  {
     filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.25));
+    transform: scale(1.1);
 }
 
 .meta-item-copy:hover  {
     filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.25));
+    transform: scale(1.1);
 }
 
 .meta-item-run:hover  {
     filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.25));
+    transform: scale(1.1);
 }
 
 .meta-item-run.loading  {
@@ -388,6 +394,7 @@ li {
 
 .meta-item-span:hover {
     background-color: #eaeaea;
+    transform: scale(1.1);
 }
 
 
@@ -478,18 +485,22 @@ li {
 
 .delete-button:hover  {
     filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.25));
+    transform: scale(1.1);
 }
 
 .copy-button:hover  {
     filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.25));
+    transform: scale(1.1);
 }
 
 .play-button:hover  {
     filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.25));
+    transform: scale(1.1);
 }
 
 .check-button:hover  {
     filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.25));
+    transform: scale(1.1);
 }
 
 /* Copy Button */
@@ -550,24 +561,24 @@ li {
     justify-content: center;
     width: 20px; /* Adjust the width as needed */
     height: 20px; /* Adjust the height as needed */
-    background-color: #384f45;
+    background-color: #212925;
     border-radius: 50%; /* Makes it a circle */
     cursor: pointer;
 }
 
 .expand-button:hover{
     filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.25));
+    transform: scale(1.1);
 }
 
 .expand-button.selected {
     box-shadow: inset 4px 4px 4px 4px rgba(0, 0, 0, 0.25); /* Added inset for inner shadow */
-    background-color: #789588;
 }
 
 .expand-tray {
     display: none;
     padding: 10px;
-    background-color: #FFFDFA;
+    background-color: #ffff;
     box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25) inset;
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
