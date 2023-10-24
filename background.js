@@ -50,10 +50,6 @@ function sendSelectedTextToContentScript(selectedText) {
     });
 }
 
-
-
-
-
 function getPageContent() {
     return document.body.innerText; // or any other way to extract the content you need
 }
