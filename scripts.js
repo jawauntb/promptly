@@ -1,13 +1,3 @@
-chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-    console.log("Received message in content script:", message);
-    if (message.type === "selectedText") {
-        // Use your existing functionality to save and store the goal
-        saveGoal(message.text, () => {
-            loadGoals();
-        });
-    }
-});
-
 const goalList = document.getElementById("goalList");
 let isLoading = false;
 let selectedGoals = [];
@@ -104,6 +94,18 @@ function createGoalElement(goal, index) {
 
     return div;
 }
+
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+    console.log("Received message in content script:", message);
+    if (message.type === "highlightedText") {
+        console.log("Highlighted text")
+        // Use your existing functionality to save and store the goal
+        saveGoal(message.text, () => {
+            loadGoals();
+        });
+    }
+});
+
 
 function createDeleteButton(index) {
     // Create a div for the delete button
@@ -275,6 +277,7 @@ function updateMetaItem() {
         metaItemContent.appendChild(span);
     });
 }
+
 
 document.addEventListener("DOMContentLoaded", function () {
 

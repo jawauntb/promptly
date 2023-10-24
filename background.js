@@ -22,8 +22,7 @@ function sendSelectedTextToContentScript() {
             if (selection) {
                 console.log("Sending message with selected text");
                 if (activeTab.status === "complete") {
-                    console.log("Sending message with")
-                    chrome.tabs.sendMessage(activeTab.id, { type: "selectedText", text: selection });
+                    chrome.tabs.sendMessage(activeTab.id, { type: "highlightedText", text: selection });
                     if (chrome.runtime.lastError) {
                         console.error('Error sending message:', chrome.runtime.lastError.message);
                     } else {
@@ -36,7 +35,6 @@ function sendSelectedTextToContentScript() {
 }
 
 function getSelectionText() {
-
     return window.getSelection().toString();
 }
 
