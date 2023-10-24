@@ -1,7 +1,11 @@
-chrome.contextMenus.create({
-    id: "add_to_notenit_menu",
-    title: "Add to NoteNit",
-    contexts: ["selection"]
+// This event is triggered when the extension is installed or updated.
+chrome.runtime.onInstalled.addListener(() => {
+    // Create context menu once during the extension's installation
+    chrome.contextMenus.create({
+        id: "add_to_notenit_menu",
+        title: "Add to NoteNit",
+        contexts: ["selection"]
+    });
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
@@ -37,12 +41,16 @@ function sendSelectedTextToContentScript(selectedText) {
                 if(chrome.runtime.lastError){
                     console.error("Error sending message:", chrome.runtime.lastError);
                 } else {
-                    console.log("Confirmation received:", response);
+                    console.log("Selected text received:", response.text);
+                    // Send the text back to the content script as a "highlightedText" message
+                    chrome.tabs.sendMessage(activeTab.id, { type: "highlightedText", text: response.text });
                 }
             });
         }
     });
 }
+
+
 
 
 

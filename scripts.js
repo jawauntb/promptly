@@ -104,17 +104,48 @@ function createGoalElement(goal, index) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log("Received message in content script:", message);
-    if (message.type === "highlightedText") {
-        saveGoal(message.text, loadGoals);
-    } else if (message.type === "getSelectedText") {
-        // When background requests the selected text, send it back
+    if (message.type === "getSelectedText") {
+        // When background requests the selected text, send it back as a direct response
         const selectedText = window.getSelection().toString();
         if (selectedText) {
-            chrome.runtime.sendMessage({ type: "highlightedText", text: selectedText });
+            sendResponse({ type: "highlightedText", text: selectedText });
         }
     }
+    if (message.type === "highlightedText") {
+        saveGoal(message.text, loadGoals);
+    }
+    // Required for async response: keep the message channel open until sendResponse is called
+    return true;
 });
+
+
+
+// observe mutations
+
+// const observerCallback = (mutationsList, observer) => {
+//     for(const mutation of mutationsList) {
+//         // Check the type of mutation and react accordingly
+//         if(mutation.type === 'childList') {
+//             console.log('A child node has been added or removed.');
+//         }
+//         else if(mutation.type === 'attributes') {
+//             console.log('An attribute was modified.');
+//         }
+//         // You can add more conditions based on your requirements
+//     }
+// };
+
+// const observer = new MutationObserver(observerCallback);
+
+// const observedNode = document.body;  // In this example, we're observing the entire body
+
+// const config = {
+//     attributes: true,   // Observe attribute changes
+//     childList: true,    // Observe when child nodes are added or removed
+//     subtree: true       // Observe all descendants, not just immediate children
+// };
+
+// observer.observe(observedNode, config);
 
 
 

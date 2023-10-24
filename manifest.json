@@ -6,14 +6,13 @@
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "images/todo2.png",
-      "48": "images/todo2.png",
-      "128": "images/todo2.png"
+      "16": "images/todo16.png",
+      "48": "images/todo48.png",
+      "128": "images/todo128.png"
     }
   },
   "background": {
-    "service_worker": "background.js",
-    "persistent": true
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
