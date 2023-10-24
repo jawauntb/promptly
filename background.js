@@ -1,43 +1,54 @@
-function getPageContent() {
-    return document.body.innerText; // or any other way to extract the content you need
-}
+chrome.contextMenus.create({
+    id: "add_to_notenit_menu",
+    title: "Add to NoteNit",
+    contexts: ["selection"]
+});
 
-function sendSelectedTextToContentScript() {
-    chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId === "add_to_notenit_menu") {
+        sendSelectedTextToContentScript(info.selectionText);
+    }
+});
+
+chrome.commands.onCommand.addListener((command) => {
+    if (command === "_execute_action") {
+        chrome.action.openPopup();
+    } else if (command === "add_to_notenit") {
+        // In case of keyboard shortcut, we don't have the selected text immediately
+        sendSelectedTextToContentScript();
+    }
+});
+
+function sendSelectedTextToContentScript(selectedText) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const activeTab = tabs[0];
-        if (!activeTab) {
-            console.error('No active tab found');
-            return;
-        }
-        chrome.scripting.executeScript({
-            target: { tabId: activeTab.id },
-            func: getSelectionText // Pass the function directly, not as a string
-        }, function(results) {
-            if (chrome.runtime.lastError) {
-                console.error(chrome.runtime.lastError);
-                return;
-            }
-            const selection = results && results[0] && results[0].result;
-            console.log("Retrieved selection:", selection);
-            if (selection) {
-                console.log("Sending message with selected text");
-                if (activeTab.status === "complete") {
-                    chrome.tabs.sendMessage(activeTab.id, { type: "highlightedText", text: selection });
-                    if (chrome.runtime.lastError) {
-                        console.error('Error sending message:', chrome.runtime.lastError.message);
-                    } else {
-                        console.log("Message sent successfully");
-                    }
+        if (!activeTab) return;
+
+        if (selectedText) {
+            chrome.tabs.sendMessage(activeTab.id, { type: "highlightedText", text: selectedText }, response => {
+                if(chrome.runtime.lastError){
+                    console.error("Error sending message:", chrome.runtime.lastError);
+                } else {
+                    console.log("Confirmation received:", response);
                 }
-            }
-        });
+            });
+        } else {
+            chrome.tabs.sendMessage(activeTab.id, { type: "getSelectedText" }, response => {
+                if(chrome.runtime.lastError){
+                    console.error("Error sending message:", chrome.runtime.lastError);
+                } else {
+                    console.log("Confirmation received:", response);
+                }
+            });
+        }
     });
 }
 
-function getSelectionText() {
-    return window.getSelection().toString();
-}
 
+
+function getPageContent() {
+    return document.body.innerText; // or any other way to extract the content you need
+}
 
 function sendContent() {
     const contentLength = content.length;
@@ -51,24 +62,6 @@ function sendContent() {
         sendResponse({ content: content });
     }
 }
-
-chrome.commands.onCommand.addListener(function(command) {
-    if (command === "_execute_action") {
-        // Open the popup (if it doesn't open by default)
-        chrome.action.openPopup();
-    } else if (command === "add_to_notenit") {
-        sendSelectedTextToContentScript();
-    }
-});
-
-chrome.contextMenus.removeAll(function() {
-    chrome.contextMenus.create({
-        id: "add_to_notenit_menu",
-        title: "Add to NoteNit",
-        contexts: ["selection"]
-    });
-});
-
 
 chrome.contextMenus.onClicked.addListener(function(info, tab) {
     if (info.menuItemId === "add_to_notenit_menu") {

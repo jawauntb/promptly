@@ -14,7 +14,7 @@ function storeGoals(goals, callback) {
         }
     });
 }
-
+// goal | item list functionality
 function retrieveGoals(callback) {
     chrome.storage.sync.get("userGoals", function(data) {
         callback(data.userGoals || []);
@@ -35,6 +35,14 @@ function saveGoal(goal, callback) {
     retrieveGoals(goals => {
         goals.push(goal);
         storeGoals(goals, callback);
+    });
+}
+
+function deleteGoal(index) {
+    retrieveGoals(goals => {
+        goals.splice(index, 1);
+        storeGoals(goals, ()=>{});
+        loadGoals();
     });
 }
 
@@ -95,16 +103,20 @@ function createGoalElement(goal, index) {
     return div;
 }
 
-chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log("Received message in content script:", message);
     if (message.type === "highlightedText") {
-        console.log("Highlighted text")
-        // Use your existing functionality to save and store the goal
-        saveGoal(message.text, () => {
-            loadGoals();
-        });
+        saveGoal(message.text, loadGoals);
+    } else if (message.type === "getSelectedText") {
+        // When background requests the selected text, send it back
+        const selectedText = window.getSelection().toString();
+        if (selectedText) {
+            chrome.runtime.sendMessage({ type: "highlightedText", text: selectedText });
+        }
     }
 });
+
+
 
 
 function createDeleteButton(index) {
@@ -228,7 +240,7 @@ function createCheckButton(index, goal) {
 
     return checkButton;
 }
-
+// expand tray functionality
 
 function createExpandButton(index) {
     // Create a div for the delete button
@@ -258,6 +270,62 @@ function expandGoal(index, feedback) {
     return expandTray;
 }
 
+
+function toggleExpandTray(identifier) {
+    const expandTray = document.getElementById("expand-tray-" + identifier);
+    let targetElement;
+    const expandButton = document.getElementById("expand-button-" + identifier);
+    const plusText = document.getElementById("plus-text-" + identifier);
+    // If identifier is a number, it's a goal item; otherwise, it's a custom element (like "meta-item-response")
+    if (typeof identifier === "number") {
+        targetElement = document.getElementById("goal-item-content" + identifier);
+    } else {
+        targetElement = document.getElementById(identifier);
+    }
+
+    if (expandTray.style.display === "none" || !expandTray.style.display) {
+        expandButton.classList.add('selected');
+        // plusText.className = "fa-solid fa-plus";
+        plusText.classList.remove('fa-plus');
+        plusText.classList.add('fa-minus');
+        expandTray.style.display = "block";
+        targetElement.style.borderBottomLeftRadius = "0px";
+        targetElement.style.borderBottomRightRadius = "0px";
+    } else {
+        expandButton.classList.remove('selected');
+        plusText.classList.remove('fa-minus');
+        plusText.classList.add('fa-plus');
+        expandTray.style.display = "none";
+        targetElement.style.borderRadius = "10px";
+    }
+}
+
+// display feedback functionality
+function displayFeedback(feedbackList) {
+    const feedbackDiv = document.getElementById('feedback');
+    feedbackDiv.style.visibility = 'visible';
+    feedbackDiv.innerHTML = '';
+    if (!feedbackList.length) {
+        const p = document.createElement("p");
+        p.textContent = "This site does not appear to be relevant to any of your stated goals"
+        feedbackDiv.appendChild(p);
+    }
+}
+// meta item functionality
+function storeSelectedGoals() {
+    chrome.storage.sync.set({ metaGoals: selectedGoals }, function() {
+        if (chrome.runtime.lastError) {
+            console.error('Error in chrome.storage.sync.set:', chrome.runtime.lastError.message);
+        }
+    });
+}
+
+function retrieveSelectedGoals(callback) {
+    chrome.storage.sync.get("metaGoals", function(data) {
+        callback(data.metaGoals || []);
+    });
+}
+
 function updateMetaItem() {
     const metaItemContent = document.getElementById("meta-item-content");
     metaItemContent.innerHTML = ""; // Clear previous content
@@ -276,12 +344,202 @@ function updateMetaItem() {
 
         metaItemContent.appendChild(span);
     });
+    // Add the check here:
+    const metaItem = document.getElementById("meta-item");
+    if (!selectedGoals.length) {
+        metaItem.style.display = "none";
+    } else {
+        metaItem.style.display = "flex";
+    }
 }
 
+function initializeMetaItem() {
+    // Retrieve stored meta items and display them
+    retrieveSelectedGoals(storedMetaGoals => {
+        selectedGoals = storedMetaGoals;
+        updateMetaItem();
+    });
+}
+
+goalList.addEventListener("click", function(e) {
+    if (e.target.classList.contains("checkmark")) {
+        const goalText = e.target.previousElementSibling.textContent;
+        selectedGoals.push(goalText);
+        updateMetaItem();
+        storeSelectedGoals();
+    }
+});
+
+const clearButton = document.querySelector(".meta-item-clear");
+clearButton.addEventListener("click", function() {
+    selectedGoals = [];
+
+    // Unselect checkmarks on all goal items
+    const goalList = document.getElementById("goalList");
+
+    Array.from(goalList.children).forEach(goalItem => {
+        const checkButton = goalItem.querySelector(".check-button");
+        checkButton.classList.remove('selected');
+    });
+
+    updateMetaItem();
+    storeSelectedGoals();
+    }
+);
+
+// Reference to the meta-item-copy button
+const copyButton = document.querySelector(".meta-item-copy");
+
+// Event listener to handle the copy action
+copyButton.addEventListener("click", function() {
+    const combinedText = selectedGoals.join(" ");
+
+    // Using Clipboard API to copy text
+    navigator.clipboard.writeText(combinedText).then(function() {
+        console.log('Text successfully copied to clipboard!');
+        // TODO: Add any visual feedback for successful copy here if needed
+    }).catch(function(err) {
+        console.error('Unable to copy text: ', err);
+        // TODO: Handle the error, maybe inform the user about the failure
+    });
+});
+
+// Run button: Combine texts and send to API
+const runButton = document.querySelector(".meta-item-run");
+runButton.addEventListener("click", function() {
+    const combinedText = selectedGoals.join(" ");
+
+    // Start loading animation
+    isLoading = true;
+    document.getElementById('brand-area').classList.add('loading');
+    document.getElementById('check-site-button').classList.add('loading');
+    runButton.classList.add('loading');
+
+    // Make API request
+    makeAPIRequest({
+        model: "gpt-3.5-turbo",
+        messages: [
+            { role: "user", content: combinedText }
+        ]
+    }, function(response) {
+        // Stop loading animation
+        runButton.classList.remove('loading');
+        document.getElementById('brand-area').classList.remove('loading');
+        isLoading = false;
+
+        // Display the response in an expand tray beneath the meta item
+        const feedback = response;
+        const expandTray = createExpandTrayForElement("meta-item", feedback);
+        const parent = document.getElementById('meta-item')
+        parent.appendChild(expandTray);
+        // If no existing expand button, create one
+        const existingExpandButton = document.getElementById("expand-button-meta-item");
+        if (!existingExpandButton) {
+            const expandButton = createExpandButton("meta-item");
+            expandButton.style.display = "flex";
+            expandButton.style.width = '30px';
+            expandButton.style.height = '30px';
+            const buttonBox = document.getElementById("meta-item-buttons");
+            buttonBox.appendChild(expandButton);
+        }
+        document.getElementById('brand-area').classList.remove('loading');
+        document.getElementById('check-site-button').classList.remove('loading');
+        runButton.classList.remove('loading');
+        isLoading = false;
+        // Automatically open the tray
+        toggleExpandTray("meta-item");
+    });
+});
+
+function deleteMetaItem(goalText) {
+    const idx = selectedGoals.indexOf(goalText);
+    if (idx > -1) {
+        selectedGoals.splice(idx, 1); // Remove the goal from the array
+
+        const goalList = document.getElementById("goalList");
+        // Find the goal item with this text and reset its checkmark
+        Array.from(goalList.children).forEach(goalItem => {
+            const itemText = goalItem.querySelector(".list-text").textContent;
+            if (itemText === goalText) {
+                const checkButton = goalItem.querySelector(".check-button");
+                checkButton.classList.remove('selected');
+            }
+        });
+
+        updateMetaItem(); // Refresh the meta item
+    }
+}
+// expand tray for meta items
+function createExpandTrayForElement(elementId, feedback) {
+    // Create the expand tray with the given feedback
+    const expandTray = document.createElement("div");
+    expandTray.className = "expand-tray";
+    expandTray.id = "expand-tray-" + elementId;
+    expandTray.style.display = "none"; // Set initial display to none
+    expandTray.style.boxShadow = "0px 4px 4px 2px rgba(0, 0, 0, 0.25) inset";
+    expandTray.style.background = "#FFFDFA";
+    expandTray.textContent = feedback; // Append the feedback
+    return expandTray; // Return the expand tray in case further manipulation is needed
+}
+
+// api request stuff
+async function summarizeContent(fulltext, callback) {
+    const summaryRequestPayload = {
+        model: "gpt-3.5-turbo",
+        messages: [
+            { role: "user", content: `Summarize the following site content for me: ${fulltext.content}` }
+        ]
+    };
+    makeAPIRequest(summaryRequestPayload, (response) => {
+        const summary = response;
+        // console.log(`Summary: ${summary ? ` ${summary}` : ''}`);
+        callback(summary);
+    });
+}
+
+async function isContentRelevantToGoal(content, goal, callback) {
+    // console.log('isContentRelevantToGoal', content, goal);
+    const relevanceRequestPayload = {
+        model: "gpt-3.5-turbo",
+        messages: [
+            // { role: "system", content: "You are a helpful assistant." },
+            { role: "user", content: `Is this text "${content}" relevant to my goal of "${goal}"? answer in this format: <yes/no>, <explanation>` }
+        ]
+    };
+
+    makeAPIRequest(relevanceRequestPayload, (response) => {
+        // console.log('relevanceRequestPayload', response)
+        const [relevance, explanation] = response.split(', ');
+        const isRelevant = relevance.toLowerCase() === 'yes';
+        // const relevanceResponse = response
+        console.log("isRelevant", isRelevant)
+        // console.log(`relevance: ${relevanceResponse ? ` ${relevanceResponse}` : 'no answer'}`);
+        callback({ isRelevant, explanation});;
+    });
+}
+
+async function makeAPIRequest(payload, callback) {
+    fetch('https://emojipt-jawaunbrown.replit.app/promptly', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ payload })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data, 'data');
+        if (data  && data.choices && data.choices.length > 0) {
+            const result = data.choices[0].message.content;
+            callback(result); // Send back the generated text
+        } else {
+            console.error('Unexpected API response:', data);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
 
 document.addEventListener("DOMContentLoaded", function () {
-
-
     // Event listener for editing goal text
     goalList.addEventListener("click", function(e) {
         if (e.target.classList.contains("goalText")) {
@@ -307,7 +565,6 @@ document.addEventListener("DOMContentLoaded", function () {
     loadGoals();
     initializeMetaItem();
 
-
     goalInput.addEventListener("keypress", function(e) {
         if (e.key === 'Enter') {  // Check if the 'Enter' key was pressed
             const goal = goalInput.value.trim();
@@ -320,124 +577,6 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();  // Prevent the default behavior of the 'Enter' key (e.g., form submission)
         }
     });
-
-    function createExpandTrayForElement(elementId, feedback) {
-        // Create the expand tray with the given feedback
-        const expandTray = document.createElement("div");
-        expandTray.className = "expand-tray";
-        expandTray.id = "expand-tray-" + elementId;
-        expandTray.style.display = "none"; // Set initial display to none
-        expandTray.style.boxShadow = "0px 4px 4px 2px rgba(0, 0, 0, 0.25) inset";
-        expandTray.style.background = "#FFFDFA";
-        expandTray.textContent = feedback; // Append the feedback
-        return expandTray; // Return the expand tray in case further manipulation is needed
-    }
-
-    function toggleExpandTray(identifier) {
-        const expandTray = document.getElementById("expand-tray-" + identifier);
-        let targetElement;
-        const expandButton = document.getElementById("expand-button-" + identifier);
-        const plusText = document.getElementById("plus-text-" + identifier);
-        // If identifier is a number, it's a goal item; otherwise, it's a custom element (like "meta-item-response")
-        if (typeof identifier === "number") {
-            targetElement = document.getElementById("goal-item-content" + identifier);
-        } else {
-            targetElement = document.getElementById(identifier);
-        }
-
-        if (expandTray.style.display === "none" || !expandTray.style.display) {
-            expandButton.classList.add('selected');
-            // plusText.className = "fa-solid fa-plus";
-            plusText.classList.remove('fa-plus');
-            plusText.classList.add('fa-minus');
-            expandTray.style.display = "block";
-            targetElement.style.borderBottomLeftRadius = "0px";
-            targetElement.style.borderBottomRightRadius = "0px";
-        } else {
-            expandButton.classList.remove('selected');
-            plusText.classList.remove('fa-minus');
-            plusText.classList.add('fa-plus');
-            expandTray.style.display = "none";
-            targetElement.style.borderRadius = "10px";
-        }
-    }
-
-
-    function deleteGoal(index) {
-        retrieveGoals(goals => {
-            goals.splice(index, 1);
-            storeGoals(goals, ()=>{});
-            loadGoals();
-        });
-    }
-
-    function displayFeedback(feedbackList) {
-        const feedbackDiv = document.getElementById('feedback');
-        feedbackDiv.style.visibility = 'visible';
-        feedbackDiv.innerHTML = '';
-        if (!feedbackList.length) {
-            const p = document.createElement("p");
-            p.textContent = "This site does not appear to be relevant to any of your stated goals"
-            feedbackDiv.appendChild(p);
-        }
-    }
-
-
-    async function summarizeContent(fulltext, callback) {
-        const summaryRequestPayload = {
-            model: "gpt-3.5-turbo",
-            messages: [
-                { role: "user", content: `Summarize the following site content for me: ${fulltext.content}` }
-            ]
-        };
-        makeAPIRequest(summaryRequestPayload, (response) => {
-            const summary = response;
-            // console.log(`Summary: ${summary ? ` ${summary}` : ''}`);
-            callback(summary);
-        });
-    }
-
-    async function isContentRelevantToGoal(content, goal, callback) {
-        // console.log('isContentRelevantToGoal', content, goal);
-        const relevanceRequestPayload = {
-            model: "gpt-3.5-turbo",
-            messages: [
-                // { role: "system", content: "You are a helpful assistant." },
-                { role: "user", content: `Is this text "${content}" relevant to my goal of "${goal}"? answer in this format: <yes/no>, <explanation>` }
-            ]
-        };
-
-        makeAPIRequest(relevanceRequestPayload, (response) => {
-            // console.log('relevanceRequestPayload', response)
-            const [relevance, explanation] = response.split(', ');
-            const isRelevant = relevance.toLowerCase() === 'yes';
-            // const relevanceResponse = response
-            console.log("isRelevant", isRelevant)
-            // console.log(`relevance: ${relevanceResponse ? ` ${relevanceResponse}` : 'no answer'}`);
-            callback({ isRelevant, explanation});;
-        });
-    }
-
-    async function makeAPIRequest(payload, callback) {
-        fetch('https://emojipt-jawaunbrown.replit.app/promptly', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ payload })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log(data, 'data');
-            if (data  && data.choices && data.choices.length > 0) {
-                const result = data.choices[0].message.content;
-                callback(result); // Send back the generated text
-            } else {
-                console.error('Unexpected API response:', data);
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    }
 
 
     document.getElementById('analyzeButton').addEventListener("click", async function() {
@@ -498,135 +637,4 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     });
-
-    function storeSelectedGoals() {
-        chrome.storage.sync.set({ metaGoals: selectedGoals }, function() {
-            if (chrome.runtime.lastError) {
-                console.error('Error in chrome.storage.sync.set:', chrome.runtime.lastError.message);
-            }
-        });
-    }
-
-    function retrieveSelectedGoals(callback) {
-        chrome.storage.sync.get("metaGoals", function(data) {
-            callback(data.metaGoals || []);
-        });
-    }
-
-    function initializeMetaItem() {
-        // Retrieve stored meta items and display them
-        retrieveSelectedGoals(storedMetaGoals => {
-            selectedGoals = storedMetaGoals;
-            updateMetaItem();
-        });
-    }
-
-    goalList.addEventListener("click", function(e) {
-        if (e.target.classList.contains("checkmark")) {
-            const goalText = e.target.previousElementSibling.textContent;
-            selectedGoals.push(goalText);
-            updateMetaItem();
-            storeSelectedGoals();
-        }
-    });
-
-    const clearButton = document.querySelector(".meta-item-clear");
-    clearButton.addEventListener("click", function() {
-        selectedGoals = [];
-
-        // Unselect checkmarks on all goal items
-        const goalList = document.getElementById("goalList");
-
-        Array.from(goalList.children).forEach(goalItem => {
-            const checkButton = goalItem.querySelector(".check-button");
-            checkButton.classList.remove('selected');
-        });
-
-        updateMetaItem();
-        storeSelectedGoals();
-        }
-    );
-
-    // Reference to the meta-item-copy button
-    const copyButton = document.querySelector(".meta-item-copy");
-
-    // Event listener to handle the copy action
-    copyButton.addEventListener("click", function() {
-        const combinedText = selectedGoals.join(" ");
-
-        // Using Clipboard API to copy text
-        navigator.clipboard.writeText(combinedText).then(function() {
-            console.log('Text successfully copied to clipboard!');
-            // TODO: Add any visual feedback for successful copy here if needed
-        }).catch(function(err) {
-            console.error('Unable to copy text: ', err);
-            // TODO: Handle the error, maybe inform the user about the failure
-        });
-    });
-
-    // Run button: Combine texts and send to API
-    const runButton = document.querySelector(".meta-item-run");
-    runButton.addEventListener("click", function() {
-        const combinedText = selectedGoals.join(" ");
-
-        // Start loading animation
-        isLoading = true;
-        document.getElementById('brand-area').classList.add('loading');
-        document.getElementById('check-site-button').classList.add('loading');
-        runButton.classList.add('loading');
-
-        // Make API request
-        makeAPIRequest({
-            model: "gpt-3.5-turbo",
-            messages: [
-                { role: "user", content: combinedText }
-            ]
-        }, function(response) {
-            // Stop loading animation
-            runButton.classList.remove('loading');
-            document.getElementById('brand-area').classList.remove('loading');
-            isLoading = false;
-
-            // Display the response in an expand tray beneath the meta item
-            const feedback = response;
-            const expandTray = createExpandTrayForElement("meta-item", feedback);
-            const parent = document.getElementById('meta-item')
-            parent.appendChild(expandTray);
-            // If no existing expand button, create one
-            const existingExpandButton = document.getElementById("expand-button-meta-item");
-            if (!existingExpandButton) {
-                const expandButton = createExpandButton("meta-item");
-                expandButton.style.display = "flex";
-                expandButton.style.width = '30px';
-                expandButton.style.height = '30px';
-                const buttonBox = document.getElementById("meta-item-buttons");
-                buttonBox.appendChild(expandButton);
-            }
-            document.getElementById('brand-area').classList.remove('loading');
-            document.getElementById('check-site-button').classList.remove('loading');
-            runButton.classList.remove('loading');
-            isLoading = false;
-            // Automatically open the tray
-            toggleExpandTray("meta-item");
-        });
-    });
-
-    function deleteMetaItem(goalText) {
-        const idx = selectedGoals.indexOf(goalText);
-        if (idx > -1) {
-            selectedGoals.splice(idx, 1); // Remove the goal from the array
-
-            const goalList = document.getElementById("goalList");
-            // Find the goal item with this text and reset its checkmark
-            Array.from(goalList.children).forEach(goalItem => {
-                const itemText = goalItem.querySelector(".list-text").textContent;
-                if (itemText === goalText) {
-                    const checkButton = goalItem.querySelector(".check-button");
-                    checkButton.classList.remove('selected');
-                }
-            });
-
-            updateMetaItem(); // Refresh the meta item
-        }
-    }
 });
