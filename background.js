@@ -21,7 +21,15 @@ function sendSelectedTextToContentScript() {
             console.log("Retrieved selection:", selection);
             if (selection) {
                 console.log("Sending message with selected text");
-                chrome.tabs.sendMessage(activeTab.id, { type: "selectedText", text: selection });
+                if (activeTab.status === "complete") {
+                    console.log("Sending message with")
+                    chrome.tabs.sendMessage(activeTab.id, { type: "selectedText", text: selection });
+                    if (chrome.runtime.lastError) {
+                        console.error('Error sending message:', chrome.runtime.lastError.message);
+                    } else {
+                        console.log("Message sent successfully");
+                    }
+                }
             }
         });
     });
@@ -100,62 +108,3 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return true;  // Keeps the message channel open for sendResponse
     }
 });
-
-const stopWords = new Set([
-    "the", "and", "in", "of", "to", "a",
-    "is", "on", "for", "with", "as", "by",
-    "an", "at", "that", "it", "this", "are",
-    "be", "or", "but", "not", "have", "which",
-    "from", "can", "has", "will", "was", "if",
-    "they", "their", "you", "all", "we", "about",
-    "would", "when", "so", "there", "more", "one",
-    "what", "who", "them", "some", "other", "these",
-    "been", "may", "like", "than", "out", "into", "up",
-    "do", "any", "your", "how", "just", "those", "he", "she",
-    "its", "our", "also", "because", "could", "only", "even", "most",
-    "over", "under", "between", "such", "being", "many", "through", "after",
-    "before", "during", "against", "without", "while", "below", "above", "around",
-    "across", "off", "his", "her", "their", "its", "my", "your", "our", "his", "her",
-    "its", "my", "your", "our"
-]);
-
-function preprocessGoals(goals) {
-    const keywords = [];
-    goals.forEach(goal => {
-        const words = goal.split(' ');
-        const filteredWords = words.filter(word => !stopWords.has(word.toLowerCase()));
-        keywords.push(...filteredWords);
-    });
-    return [...new Set(keywords)]; // Using Set to remove duplicates and then converting back to array
-}
-
-function extractRelevantText(text, keywords) {
-    let relevantSections = [];
-
-    keywords.forEach(keyword => {
-        let index = text.indexOf(keyword);
-        if (index !== -1) {
-            let start = Math.max(0, index - 200);
-            let end = Math.min(text.length, index + 200 + keyword.length);
-            relevantSections.push(text.substring(start, end));
-        }
-    });
-
-    if (relevantSections.length === 0) {  // No keyword matches
-        relevantSections.push(text.substring(0, 500));
-        let middleStart = Math.floor(text.length / 2) - 150;
-        relevantSections.push(text.substring(middleStart, middleStart + 300));
-        let endStart = text.length - 700;
-        relevantSections.push(text.substring(endStart, endStart + 200));
-    }
-
-    return relevantSections.join(' ');
-};
-
-
-
-
-
-
-
-

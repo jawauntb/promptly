@@ -1,47 +1,282 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const goalList = document.getElementById("goalList");
-    let isLoading = false;
-    let selectedGoals = [];
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+    console.log("Received message in content script:", message);
+    if (message.type === "selectedText") {
+        // Use your existing functionality to save and store the goal
+        saveGoal(message.text, () => {
+            loadGoals();
+        });
+    }
+});
 
-    chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-        console.log("Received message in content script:", message);
-        if (message.type === "selectedText") {
-            // Use your existing functionality to save and store the goal
-            saveGoal(message.text, () => {
-                loadGoals();
-            });
+const goalList = document.getElementById("goalList");
+let isLoading = false;
+let selectedGoals = [];
+
+function storeGoals(goals, callback) {
+    chrome.storage.sync.set({ userGoals: goals }, function() {
+        if (chrome.runtime.lastError) {
+            console.error('Error in chrome.storage.sync.set:', chrome.runtime.lastError.message);
+        } else {
+            console.log('Data is stored in Chrome storage, executing callback...');
+            if (callback) {
+                callback();
+            };
         }
     });
+}
 
-    function saveGoal(goal, callback) {
-        retrieveGoals(goals => {
-            goals.push(goal);
-            storeGoals(goals, callback);
+function retrieveGoals(callback) {
+    chrome.storage.sync.get("userGoals", function(data) {
+        callback(data.userGoals || []);
+    });
+}
+
+function loadGoals() {
+    retrieveGoals(goals => {
+        goalList.innerHTML = "";
+        goals.forEach((goal, index) => {
+            const li = createGoalElement(goal, index);
+            goalList.appendChild(li);
         });
-    }
+    });
+}
 
-    function storeGoals(goals, callback) {
-        chrome.storage.sync.set({ userGoals: goals }, function() {
-            if (chrome.runtime.lastError) {
-                console.error('Error in chrome.storage.sync.set:', chrome.runtime.lastError.message);
-            } else {
-                console.log('Data is stored in Chrome storage, executing callback...');
-                if (callback) {
-                    callback();
-                };
+function saveGoal(goal, callback) {
+    retrieveGoals(goals => {
+        goals.push(goal);
+        storeGoals(goals, callback);
+    });
+}
+
+function createGoalElement(goal, index) {
+    // Create a div as the container for each goal item
+    const div = document.createElement("div");
+    div.className = "goal-item";
+    div.id = "goal-item-" + index; // Assign a unique id to each goal item
+
+    // Create another div to hold the goal text and delete button
+    const goalItemContent = document.createElement("div");
+    goalItemContent.className = "goal-item-content";
+    goalItemContent.id = "goal-item-content" + index
+
+    // Create and append the goal text span to goalItemContent
+    const goalTextContainer = document.createElement("div");
+    goalTextContainer.className = "text-container";
+    goalTextContainer.id = "text-container-" + index;
+
+    const goalText = document.createElement("span");
+    goalText.className = "list-text";
+    goalText.id = "list-text-" + index;
+    goalText.textContent = goal;
+    goalText.setAttribute('contenteditable', 'true');
+
+    goalTextContainer.appendChild(goalText);
+    goalItemContent.appendChild(goalTextContainer);
+
+    const buttonsBox = document.createElement("div");
+    buttonsBox.className = "list-button-box"
+    buttonsBox.id = "list-button-box-" + index;
+
+    // Create and append the check button to the buttonBox
+    const checkButton = createCheckButton(index, goal);
+    buttonsBox.appendChild(checkButton);
+
+    // Create and append the play button to the buttonBox
+    const playButton = createPlayButton(goal, index);
+    buttonsBox.appendChild(playButton);
+
+    // Create and append the copy button to the buttonBox
+    const copyButton = createCopyButton(goal, index);
+    buttonsBox.appendChild(copyButton);
+
+    const deleteButton = createDeleteButton(index);
+    buttonsBox.appendChild(deleteButton);
+
+    // Append the delete button to goalItemContent
+    goalItemContent.appendChild(buttonsBox);
+
+    // Append goalItemContent to the main div
+    div.appendChild(goalItemContent);
+
+    const explanationTray = document.createElement("div");
+    explanationTray.className = "explanation-tray";
+    div.appendChild(explanationTray);
+
+    return div;
+}
+
+function createDeleteButton(index) {
+    // Create a div for the delete button
+    const deleteButton = document.createElement("div");
+    deleteButton.className = "delete-button";
+
+    // Create a div for the "x" text inside the delete button
+    const xText = document.createElement("i");
+    xText.className = "fa-solid fa-x";
+    xText.style.color = "white"
+    deleteButton.appendChild(xText);
+
+    deleteButton.addEventListener("click", () => deleteGoal(index));
+    return deleteButton;
+}
+
+function createCopyButton(goal, index) {
+    // Create a div for the copy button
+    const copyButton = document.createElement("div");
+    copyButton.className = "copy-button";
+
+    // Create an icon element for the copy symbol
+    const copyIcon = document.createElement("i");
+    copyIcon.className = "fa-regular fa-copy"; // Using the Font Awesome class for the copy icon
+    // Append the copy icon to the copy button
+    copyButton.appendChild(copyIcon);
+
+    // Add event listener to the copy button to handle the copy action
+    copyButton.addEventListener("click", function() {
+        // Copy the goal content to clipboard
+        const textArea = document.createElement("textarea");
+        textArea.value = goal;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+    });
+
+    return copyButton;
+}
+
+function createPlayButton(goal, index) {
+    // Create a div for the play button
+    const playButton = document.createElement("div");
+    playButton.className = "play-button";
+
+    // Create an icon element for the play symbol
+    const playIcon = document.createElement("i");
+    playIcon.className = "fa-solid fa-play";
+    playIcon.style.color = "#ffffff";
+    playButton.appendChild(playIcon);
+
+    playButton.addEventListener("click", function () {
+        isLoading = true;
+        document.getElementById('check-site-button').classList.add('loading');
+        document.getElementById('brand-area').classList.add('loading');
+        playButton.classList.add('loading');
+        makeAPIRequest({
+            model: "gpt-3.5-turbo",
+            messages: [
+                { role: "user", content: goal }
+            ]
+        }, function(response) {
+            playButton.classList.remove('loading'); // Remove loading animation
+
+            // Create and display the expand tray similar to the site check function
+            const feedback = response;
+            const expandTray = expandGoal(index, feedback);
+            const goalContentBox = document.getElementById("goal-item-content" + index);
+            goalContentBox.parentElement.appendChild(expandTray); 
+
+            const existingExpandButton = document.getElementById("expand-button-" + index);
+            if (!existingExpandButton) {
+                const expandButton = createExpandButton(index);
+                expandButton.style.display = "flex";
+                const buttonBox = document.getElementById("list-button-box-" + index);
+                buttonBox.appendChild(expandButton);
             }
+            document.getElementById('brand-area').classList.remove('loading');
+            document.getElementById('check-site-button').classList.remove('loading');
+            playButton.classList.remove('loading');
+            isLoading = false;
+            // Automatically open the tray
+            toggleExpandTray(index);
         });
+    });
+    return playButton;
+}
+
+function createCheckButton(index, goal) {
+    const checkButton = document.createElement("div");
+    checkButton.className = "check-button";
+
+    const checkIcon = document.createElement("i");
+    checkIcon.className = "fa-solid fa-check";
+    checkIcon.style.color = "white";
+    checkButton.appendChild(checkIcon);
+
+    // Extract the goal text using the index
+    const goalText = goal
+
+    if (selectedGoals.includes(goalText)) {
+        checkButton.classList.add('selected');
     }
 
-    function loadGoals() {
-        retrieveGoals(goals => {
-            goalList.innerHTML = "";
-            goals.forEach((goal, index) => {
-                const li = createGoalElement(goal, index);
-                goalList.appendChild(li);
-            });
-        });
-    }
+    checkButton.addEventListener("click", function() {
+        if (selectedGoals.includes(goalText)) {
+            // If the goal is already selected, deselect it
+            selectedGoals.splice(selectedGoals.indexOf(goalText), 1);
+            checkIcon.style.color = "white";
+            checkButton.classList.remove('selected');
+        } else {
+            // Otherwise, select the goal
+            selectedGoals.push(goalText);
+            checkIcon.style.color = "black";
+            checkButton.classList.add('selected');
+        }
+        updateMetaItem();
+    });
+
+    return checkButton;
+}
+
+
+function createExpandButton(index) {
+    // Create a div for the delete button
+    const expandButton = document.createElement("div");
+    expandButton.className = "expand-button";
+    expandButton.id = "expand-button-" + index;
+    expandButton.style.display = "none"; // Initially hidden
+
+    const plusText = document.createElement("i");
+    plusText.id = "plus-text-" + index
+    plusText.className = "fa-solid fa-plus";
+    plusText.style.color = "white";
+    expandButton.appendChild(plusText);
+
+    expandButton.addEventListener("click", () => toggleExpandTray(index));
+    return expandButton;
+}
+
+function expandGoal(index, feedback) {
+    const expandTray = document.createElement("div");
+    expandTray.className = "expand-tray";
+    expandTray.id = "expand-tray-" + index;
+    expandTray.style.display = "none"; // Set initial display to none
+    expandTray.style.boxShadow = "0px 4px 4px 2px rgba(0, 0, 0, 0.25) inset";
+    expandTray.style.background = "#FFFF";
+    expandTray.textContent = feedback; // Append the feedback
+    return expandTray;
+}
+
+function updateMetaItem() {
+    const metaItemContent = document.getElementById("meta-item-content");
+    metaItemContent.innerHTML = ""; // Clear previous content
+    selectedGoals.forEach((goalText, index) => {
+        const span = document.createElement("span");
+        span.className = "meta-item-span";
+        span.textContent = goalText.length > 15 ? goalText.substring(0, 15) + "..." : goalText;
+
+        const deleteButton = document.createElement("div");
+        deleteButton.className = "meta-delete-button";
+        const xText = document.createElement("i");
+        xText.className = "fa-solid fa-x fa-xs";
+        deleteButton.appendChild(xText);
+        deleteButton.addEventListener("click", () => deleteMetaItem(goalText)); // We pass goalText instead of index
+        span.appendChild(deleteButton);
+
+        metaItemContent.appendChild(span);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function () {
 
 
     // Event listener for editing goal text
@@ -82,109 +317,6 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();  // Prevent the default behavior of the 'Enter' key (e.g., form submission)
         }
     });
-
-
-
-
-    function createGoalElement(goal, index) {
-        // Create a div as the container for each goal item
-        const div = document.createElement("div");
-        div.className = "goal-item";
-        div.id = "goal-item-" + index; // Assign a unique id to each goal item
-
-        // Create another div to hold the goal text and delete button
-        const goalItemContent = document.createElement("div");
-        goalItemContent.className = "goal-item-content";
-        goalItemContent.id = "goal-item-content" + index
-
-        // Create and append the goal text span to goalItemContent
-        const goalTextContainer = document.createElement("div");
-        goalTextContainer.className = "text-container";
-        goalTextContainer.id = "text-container-" + index;
-
-        const goalText = document.createElement("span");
-        goalText.className = "list-text";
-        goalText.id = "list-text-" + index;
-        goalText.textContent = goal;
-        goalText.setAttribute('contenteditable', 'true');
-
-        goalTextContainer.appendChild(goalText);
-        goalItemContent.appendChild(goalTextContainer);
-
-        const buttonsBox = document.createElement("div");
-        buttonsBox.className = "list-button-box"
-        buttonsBox.id = "list-button-box-" + index;
-
-        // Create and append the check button to the buttonBox
-        const checkButton = createCheckButton(index, goal);
-        buttonsBox.appendChild(checkButton);
-
-        // Create and append the play button to the buttonBox
-        const playButton = createPlayButton(goal, index);
-        buttonsBox.appendChild(playButton);
-
-        // Create and append the copy button to the buttonBox
-        const copyButton = createCopyButton(goal, index);
-        buttonsBox.appendChild(copyButton);
-
-        const deleteButton = createDeleteButton(index);
-        buttonsBox.appendChild(deleteButton);
-
-        // Append the delete button to goalItemContent
-        goalItemContent.appendChild(buttonsBox);
-
-        // Append goalItemContent to the main div
-        div.appendChild(goalItemContent);
-
-        const explanationTray = document.createElement("div");
-        explanationTray.className = "explanation-tray";
-        div.appendChild(explanationTray);
-
-        return div;
-    }
-
-    function createDeleteButton(index) {
-        // Create a div for the delete button
-        const deleteButton = document.createElement("div");
-        deleteButton.className = "delete-button";
-
-        // Create a div for the "x" text inside the delete button
-        const xText = document.createElement("i");
-        xText.className = "fa-solid fa-x";
-        xText.style.color = "white"
-        deleteButton.appendChild(xText);
-
-        deleteButton.addEventListener("click", () => deleteGoal(index));
-        return deleteButton;
-    }
-
-    function createExpandButton(index) {
-        // Create a div for the delete button
-        const expandButton = document.createElement("div");
-        expandButton.className = "expand-button";
-        expandButton.id = "expand-button-" + index;
-        expandButton.style.display = "none"; // Initially hidden
-
-        const plusText = document.createElement("i");
-        plusText.id = "plus-text-" + index
-        plusText.className = "fa-solid fa-plus";
-        plusText.style.color = "white";
-        expandButton.appendChild(plusText);
-
-        expandButton.addEventListener("click", () => toggleExpandTray(index));
-        return expandButton;
-    }
-
-    function expandGoal(index, feedback) {
-        const expandTray = document.createElement("div");
-        expandTray.className = "expand-tray";
-        expandTray.id = "expand-tray-" + index;
-        expandTray.style.display = "none"; // Set initial display to none
-        expandTray.style.boxShadow = "0px 4px 4px 2px rgba(0, 0, 0, 0.25) inset";
-        expandTray.style.background = "#FFFF";
-        expandTray.textContent = feedback; // Append the feedback
-        return expandTray;
-    }
 
     function createExpandTrayForElement(elementId, feedback) {
         // Create the expand tray with the given feedback
@@ -247,11 +379,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function retrieveGoals(callback) {
-        chrome.storage.sync.get("userGoals", function(data) {
-            callback(data.userGoals || []);
-        });
-    }
 
     async function summarizeContent(fulltext, callback) {
         const summaryRequestPayload = {
@@ -368,113 +495,6 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     });
-
-    function createCopyButton(goal, index) {
-        // Create a div for the copy button
-        const copyButton = document.createElement("div");
-        copyButton.className = "copy-button";
-
-        // Create an icon element for the copy symbol
-        const copyIcon = document.createElement("i");
-        copyIcon.className = "fa-regular fa-copy"; // Using the Font Awesome class for the copy icon
-        // Append the copy icon to the copy button
-        copyButton.appendChild(copyIcon);
-
-        // Add event listener to the copy button to handle the copy action
-        copyButton.addEventListener("click", function() {
-            // Copy the goal content to clipboard
-            const textArea = document.createElement("textarea");
-            textArea.value = goal;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand("copy");
-            document.body.removeChild(textArea);
-        });
-
-        return copyButton;
-    }
-
-    function createPlayButton(goal, index) {
-        // Create a div for the play button
-        const playButton = document.createElement("div");
-        playButton.className = "play-button";
-
-        // Create an icon element for the play symbol
-        const playIcon = document.createElement("i");
-        playIcon.className = "fa-solid fa-play";
-        playIcon.style.color = "#ffffff";
-        playButton.appendChild(playIcon);
-
-        playButton.addEventListener("click", function () {
-            isLoading = true;
-            document.getElementById('check-site-button').classList.add('loading');
-            document.getElementById('brand-area').classList.add('loading');
-            playButton.classList.add('loading');
-            makeAPIRequest({
-                model: "gpt-3.5-turbo",
-                messages: [
-                    { role: "user", content: goal }
-                ]
-            }, function(response) {
-                playButton.classList.remove('loading'); // Remove loading animation
-
-                // Create and display the expand tray similar to the site check function
-                const feedback = response;
-                const expandTray = expandGoal(index, feedback);
-                const goalContentBox = document.getElementById("goal-item-content" + index);
-                goalContentBox.parentElement.appendChild(expandTray); 
-
-                const existingExpandButton = document.getElementById("expand-button-" + index);
-                if (!existingExpandButton) {
-                    const expandButton = createExpandButton(index);
-                    expandButton.style.display = "flex";
-                    const buttonBox = document.getElementById("list-button-box-" + index);
-                    buttonBox.appendChild(expandButton);
-                }
-                document.getElementById('brand-area').classList.remove('loading');
-                document.getElementById('check-site-button').classList.remove('loading');
-                playButton.classList.remove('loading');
-                isLoading = false;
-                // Automatically open the tray
-                toggleExpandTray(index);
-            });
-        });
-        return playButton;
-    }
-
-    function createCheckButton(index, goal) {
-        const checkButton = document.createElement("div");
-        checkButton.className = "check-button";
-
-        const checkIcon = document.createElement("i");
-        checkIcon.className = "fa-solid fa-check";
-        checkIcon.style.color = "white";
-        checkButton.appendChild(checkIcon);
-
-        // Extract the goal text using the index
-        const goalText = goal
-
-        if (selectedGoals.includes(goalText)) {
-            checkButton.classList.add('selected');
-        }
-
-        checkButton.addEventListener("click", function() {
-            if (selectedGoals.includes(goalText)) {
-                // If the goal is already selected, deselect it
-                selectedGoals.splice(selectedGoals.indexOf(goalText), 1);
-                checkIcon.style.color = "white";
-                checkButton.classList.remove('selected');
-            } else {
-                // Otherwise, select the goal
-                selectedGoals.push(goalText);
-                checkIcon.style.color = "black";
-                checkButton.classList.add('selected');
-            }
-            updateMetaItem();
-        });
-
-        return checkButton;
-    }
 
     function storeSelectedGoals() {
         chrome.storage.sync.set({ metaGoals: selectedGoals }, function() {
@@ -606,25 +626,4 @@ document.addEventListener("DOMContentLoaded", function () {
             updateMetaItem(); // Refresh the meta item
         }
     }
-
-    function updateMetaItem() {
-        const metaItemContent = document.getElementById("meta-item-content");
-        metaItemContent.innerHTML = ""; // Clear previous content
-        selectedGoals.forEach((goalText, index) => {
-            const span = document.createElement("span");
-            span.className = "meta-item-span";
-            span.textContent = goalText.length > 15 ? goalText.substring(0, 15) + "..." : goalText;
-
-            const deleteButton = document.createElement("div");
-            deleteButton.className = "meta-delete-button";
-            const xText = document.createElement("i");
-            xText.className = "fa-solid fa-x fa-xs";
-            deleteButton.appendChild(xText);
-            deleteButton.addEventListener("click", () => deleteMetaItem(goalText)); // We pass goalText instead of index
-            span.appendChild(deleteButton);
-
-            metaItemContent.appendChild(span);
-        });
-    }
-
 });
