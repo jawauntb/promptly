@@ -360,14 +360,6 @@ function initializeMetaItem() {
     });
 }
 
-goalList.addEventListener("click", function(e) {
-    if (e.target.classList.contains("checkmark")) {
-        const goalText = e.target.previousElementSibling.textContent;
-        selectedGoals.push(goalText);
-        updateMetaItem();
-        storeSelectedGoals();
-    }
-});
 
 const clearButton = document.querySelector(".meta-item-clear");
 clearButton.addEventListener("click", function() {
@@ -538,31 +530,13 @@ async function makeAPIRequest(payload, callback) {
     .catch(error => console.error('Error:', error));
 }
 
+// Load goals on startup
+
 document.addEventListener("DOMContentLoaded", function () {
-    // Event listener for editing goal text
-    goalList.addEventListener("click", function(e) {
-        if (e.target.classList.contains("goalText")) {
-            const goalTextElement = e.target;
-            goalTextElement.contentEditable = true;
-            goalTextElement.focus();
-        }
-    });
-
-    // Event listener for when user stops typing in the goal text
-    goalList.addEventListener("input", function(e) {
-        if (e.target.classList.contains("goalText")) {
-            const goalTextElement = e.target;
-            // Here, you can update the goal text wherever you're storing it
-            // For this example, let's just log the updated text
-            // console.log(goalTextElement.innerText);
-        }
-    });
-
-    const goalInput = document.getElementById("goalInput");
-
-    // Load goals on startup
     loadGoals();
     initializeMetaItem();
+    const goalInput = document.getElementById("goalInput");
+
 
     goalInput.addEventListener("keypress", function(e) {
         if (e.key === 'Enter') {  // Check if the 'Enter' key was pressed
@@ -636,4 +610,33 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     });
+
+        // Event listener for editing goal text
+    goalList.addEventListener("click", function(e) {
+        if (e.target.classList.contains("goalText")) {
+            const goalTextElement = e.target;
+            goalTextElement.contentEditable = true;
+            goalTextElement.focus();
+        }
+    });
+
+    goalList.addEventListener("click", function(e) {
+        if (e.target.classList.contains("checkmark")) {
+            const goalText = e.target.previousElementSibling.textContent;
+            selectedGoals.push(goalText);
+            updateMetaItem();
+            storeSelectedGoals();
+        }
+    });
+
+    // Event listener for when user stops typing in the goal text
+    goalList.addEventListener("input", function(e) {
+        if (e.target.classList.contains("goalText")) {
+            const goalTextElement = e.target;
+            // Here, you can update the goal text wherever you're storing it
+            // For this example, let's just log the updated text
+            // console.log(goalTextElement.innerText);
+        }
+    });
+
 });
