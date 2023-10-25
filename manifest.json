@@ -20,14 +20,7 @@
       "js": ["scripts.js"]
     }
   ],
-  "permissions": [
-    "storage",
-    "tabs",
-    "activeTab",
-    "scripting",
-    "contextMenus",
-    "commands"
-  ],
+  "permissions": ["storage", "tabs", "activeTab", "scripting", "contextMenus"],
   "host_permissions": ["<all_urls>"],
   "commands": {
     "_execute_action": {
