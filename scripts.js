@@ -530,28 +530,31 @@ async function makeAPIRequest(payload, callback) {
     .catch(error => console.error('Error:', error));
 }
 
-// Load goals on startup
+function attachResponse(relevanceResponse, feedbackList, index){
+    const answer = relevanceResponse.isRelevant ? 'Yes' : 'No';
+    const fullResponse = `${answer}, ${relevanceResponse.explanation}`
+    // Select the goal item using its unique id and change its background color to green
+    const matchingGoal = document.getElementById("list-text-" + index)
+    matchingGoal.parentElement.classList.add("matched-item")
+
+    const feedback = fullResponse;
+    const expandTray = expandGoal(index, feedback);
+    const goalContentBox = document.getElementById("goal-item-content" + index);
+    goalContentBox.parentElement.appendChild(expandTray); // Append the expand tray to the parent of the matching goal
+
+    const expandButton = createExpandButton(index);
+    expandButton.style.display = "flex"; // Make the expand button visible
+    const buttonBox = document.getElementById("list-button-box-" + index)
+    buttonBox.appendChild(expandButton); // Append the expand button to the parent of the matching goal
+
+    feedbackList.push(fullResponse);
+}
+
 
 document.addEventListener("DOMContentLoaded", function () {
     loadGoals();
     initializeMetaItem();
     const goalInput = document.getElementById("goalInput");
-
-
-    goalInput.addEventListener("keypress", function(e) {
-        if (e.key === 'Enter') {  // Check if the 'Enter' key was pressed
-            const goal = goalInput.value.trim();
-            if (goal) {
-                saveGoal(goal, () => {
-                    goalInput.value = "";  // Clear the input field
-                    loadGoals();
-                });
-            }
-            e.preventDefault();  // Prevent the default behavior of the 'Enter' key (e.g., form submission)
-        }
-    });
-
-
     document.getElementById('analyzeButton').addEventListener("click", async function() {
         if (isLoading) return; // Prevent multiple clicks while loading
         // console.log("this.classList",this.classList)
@@ -577,24 +580,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                             // Check if the relevanceResponse indicates a match
                             if (relevanceResponse.isRelevant) {
-                                // console.log('goal matched', goal, 'idx', index)
-                                const answer = relevanceResponse.isRelevant ? 'Yes' : 'No';
-                                const fullResponse = `${answer}, ${relevanceResponse.explanation}`
-                                // Select the goal item using its unique id and change its background color to green
-                                const matchingGoal = document.getElementById("list-text-" + index)
-                                matchingGoal.parentElement.classList.add("matched-item")
-
-                                const feedback = fullResponse;
-                                const expandTray = expandGoal(index, feedback);
-                                const goalContentBox = document.getElementById("goal-item-content" + index);
-                                goalContentBox.parentElement.appendChild(expandTray); // Append the expand tray to the parent of the matching goal
-
-                                const expandButton = createExpandButton(index);
-                                expandButton.style.display = "flex"; // Make the expand button visible
-                                const buttonBox = document.getElementById("list-button-box-" + index)
-                                buttonBox.appendChild(expandButton); // Append the expand button to the parent of the matching goal
-
-                                feedbackList.push(fullResponse);
+                                attachResponse(relevanceResponse, feedbackList, index)
                             }
                             // console.log('feedbackList', feedbackList, "completedGoals",completedGoals )
                             if (completedGoals === goals.length) {
@@ -611,7 +597,20 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-        // Event listener for editing goal text
+    goalInput.addEventListener("keypress", function(e) {
+        if (e.key === 'Enter') {  // Check if the 'Enter' key was pressed
+            const goal = goalInput.value.trim();
+            if (goal) {
+                saveGoal(goal, () => {
+                    goalInput.value = "";  // Clear the input field
+                    loadGoals();
+                });
+            }
+            e.preventDefault();  // Prevent the default behavior of the 'Enter' key (e.g., form submission)
+        }
+    });
+
+    // Event listener for editing goal text
     goalList.addEventListener("click", function(e) {
         if (e.target.classList.contains("goalText")) {
             const goalTextElement = e.target;

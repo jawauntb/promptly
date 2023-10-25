@@ -3,7 +3,12 @@ html{
 }
 h1{
     color: #0b2261;
+    margin-left: 80px;
+    padding: 5px;
+    display: flex;
+    margin-top: 30px;
 }
+
 body {
     background-color: #fffefe;
     font-family: 'Poppins', sans-serif;
@@ -26,8 +31,8 @@ body {
     align-items: center;
     justify-content: space-between;
     background-color: #fffefe;
-    height: 60px;
-    margin-bottom: 20px;
+    height: 50px;
+    margin-bottom: 24px;
 }
 
 .brand-area {
@@ -40,12 +45,12 @@ body {
 }
 
 .logo-area {
-    max-width: 60px;
+    max-width: 40px;
     max-height: 40px;
-    width: 60px;
+    width: 40px;
     height: 40px;
     margin-right: 10px;
-    padding: 5px;
+    padding: 10px;
     border-radius: 3px;
 }
 
@@ -70,10 +75,12 @@ h1{
 .spinning-logo {
     width: 100%;
     height: 100%;
+    height: 40px;
+    width:40px;
     margin-right: 15px;
     background-image: url('/images/todo3.png');
     background-size: cover;
-    animation: spin 2s linear infinite;
+    animation: spin .5s linear infinite;
     transform: translate(-50%, -50%);
     z-index: 0;
     visibility: hidden;
@@ -101,13 +108,14 @@ h1{
 .input-area {
     flex-grow: 1;
     margin-right: 10px;
+    max-width: 430px;
     /* border: 1px dotted #000000; */
 }
 
 /* Meta Item */
 .meta-item {
     background-color: #ffffff;
-    padding: 10px;
+    padding: 5px;
     margin: 10px;
     position: relative;
     font-family: 'Inter';
@@ -145,7 +153,7 @@ h1{
 .text-input {
     width: 100%; /* Adjusted to take full width of the input area */
     max-width: 430px;
-    height: 30px;
+    height: 20px;
     padding: 10px;
     border: .25px solid gray;
     border-radius: 10px; /* Added border-radius for rounded corners */
@@ -156,7 +164,7 @@ h1{
 .text-input::placeholder {
     font-family: 'Poppins';
     font-style: normal;
-    font-weight: 400;
+    font-weight: 200;
     font-size: 15px;
     color: gray;
     line-height: 20px;
@@ -171,6 +179,7 @@ h1{
     width: 100px;
     height: 100px;
     margin-left: 20px;
+    margin-top: 10px;;
     padding: 5px;
 }
 
@@ -281,7 +290,6 @@ li {
     display: flex;
     flex-direction: column;
     margin-top: 10px;
-    padding-top: 10px;
     padding-bottom: 10px;
     
 }
@@ -293,7 +301,7 @@ li {
     justify-content: center;
     width: 30px; /* Adjust the width as needed */
     height: 30px; /* Adjust the height as needed */
-    background-color: #04a5f6;
+    background-color: #0b2261;
     border-radius: 50%; /* Makes it a circle */
     cursor: pointer;
     color: white;
@@ -324,7 +332,7 @@ li {
     justify-content: center;
     width: 30px; /* Adjust the width as needed */
     height: 30px; /* Adjust the height as needed */
-    background-color: #ff8181;
+    background-color: #ff0303;
     color: white;
     border-radius: 50%; /* Makes it a circle */
     cursor: pointer;
@@ -338,7 +346,7 @@ li {
     color: white;
     width: 16px; /* Smaller width */
     height: 16px; /* Smaller height */
-    background-color: #ff8181;
+    background-color: #ff0303;
     border-radius: 50%; /* Keeps it a circle */
     cursor: pointer;
     position: absolute; /* This will allow it to be positioned within its parent */
@@ -350,12 +358,10 @@ li {
 
 .meta-item-span:hover .meta-delete-button {
     visibility: visible; /* Show on hover of the parent span */
-    transform: scale(1.1);
 }
 
 .meta-delete-button:hover  {
     filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.25));
-    transform: scale(1.1);
 }
 
 .meta-item-clear:hover  {
@@ -397,7 +403,6 @@ li {
 
 .meta-item-span:hover {
     background-color: #eaeaea;
-    transform: scale(1.1);
 }
 
 
@@ -410,7 +415,7 @@ li {
 }
 
 .matched-item {
-    background-color: #41f683;
+    background-color: #39f414;
     border-radius: 5px;
     padding: 4px;
     /* or any color you prefer for highlighting */
@@ -480,7 +485,7 @@ li {
     justify-content: center;
     width: 20px; /* Adjust the width as needed */
     height: 20px; /* Adjust the height as needed */
-    background-color: #ff8181;
+    background-color: #ff0303;
     border-radius: 50%; /* Makes it a circle */
     cursor: pointer;
     visibility: hidden;
@@ -531,7 +536,7 @@ li {
     justify-content: center;
     width: 20px; /* Adjust the width as needed */
     height: 20px; /* Adjust the height as needed */
-    background-color: #04a5f6;
+    background-color: #0b2261;
     border-radius: 50%; /* Makes it a circle */
     cursor: pointer;
     visibility: hidden;
@@ -552,7 +557,7 @@ li {
 
 
 .check-button.selected {
-    background-color: #42f575; /* Color when selected */
+    background-color: #39f414; /* Color when selected */
     visibility: visible;
 }
 

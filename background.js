@@ -1,3 +1,63 @@
+function getPageContent() {
+    return document.body.innerText; // or any other way to extract the content you need
+}
+
+// function sendContent(content, link) {
+//     const contentLength = content.length;
+//     if (contentLength >= 2100) {
+//         const firstSlice = content.slice(0, 700);
+//         const middleSlice = content.slice(Math.floor(contentLength / 2) - 350, Math.floor(contentLength / 2) + 350);
+//         const lastSlice = content.slice(contentLength - 700);
+//         const truncatedContent = link + firstSlice + middleSlice + lastSlice;
+//         sendResponse({ content: truncatedContent });
+//     } else {
+//         sendResponse({ content: content });
+//     }
+// }
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === "getCurrentPageContent") {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            const activeTab = tabs[0];
+            const link = "url: " + activeTab.url + ", content: ";
+            if (!activeTab) {
+                console.error('No active tab found');
+                return;
+            }
+            console.log(message, sender);
+            chrome.scripting.executeScript({
+                target: {tabId: activeTab.id},
+                function: getPageContent
+            }, (results) => {
+                if (chrome.runtime.lastError) {
+                    console.log('err', results);
+                    console.error(chrome.runtime.lastError);
+                    return;
+                }
+
+                const content = results && results[0] && results[0].result;
+                if (content) {
+                    const contentLength = content.length;
+                    if (contentLength >= 2100) {
+                        const firstSlice = content.slice(0, 700);
+                        const middleSlice = content.slice(Math.floor(contentLength / 2) - 350, Math.floor(contentLength / 2) + 350);
+                        const lastSlice = content.slice(contentLength - 700);
+                        const truncatedContent = link + firstSlice + middleSlice + lastSlice;
+                        sendResponse({ content: truncatedContent });
+                    } else {
+                        sendResponse({ content: content });
+                    }
+                } else {
+                    console.error('No content found');
+                }
+
+            });
+        });
+        return true;  // Keeps the message channel open for sendResponse
+    }
+});
+
+
 // This event is triggered when the extension is installed or updated.
 chrome.runtime.onInstalled.addListener(() => {
     // Create context menu once during the extension's installation
@@ -50,56 +110,8 @@ function sendSelectedTextToContentScript(selectedText) {
     });
 }
 
-function getPageContent() {
-    return document.body.innerText; // or any other way to extract the content you need
-}
-
-function sendContent() {
-    const contentLength = content.length;
-    if (contentLength >= 2100) {
-        const firstSlice = content.slice(0, 700);
-        const middleSlice = content.slice(Math.floor(contentLength / 2) - 350, Math.floor(contentLength / 2) + 350);
-        const lastSlice = content.slice(contentLength - 700);
-        const truncatedContent = link + firstSlice + middleSlice + lastSlice;
-        sendResponse({ content: truncatedContent });
-    } else {
-        sendResponse({ content: content });
-    }
-}
-
 chrome.contextMenus.onClicked.addListener(function(info, tab) {
     if (info.menuItemId === "add_to_notenit_menu") {
         sendSelectedTextToContentScript();
-    }
-});
-
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === "getCurrentPageContent") {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            const activeTab = tabs[0];
-            const link = "url: " + activeTab.url + ", content: ";
-            if (!activeTab) {
-                console.error('No active tab found');
-                return;
-            }
-            chrome.scripting.executeScript({
-                target: {tabId: activeTab.id},
-                function: getPageContent
-            }, (results) => {
-                if (chrome.runtime.lastError) {
-                    console.error(chrome.runtime.lastError);
-                    return;
-                }
-                const content = results && results[0] && results[0].result;
-                if (content) {
-                    sendContent(content)
-                } else {
-                    console.error('No content found');
-                }
-
-            });
-        });
-        return true;  // Keeps the message channel open for sendResponse
     }
 });
