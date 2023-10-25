@@ -14,6 +14,14 @@ function storeGoals(goals, callback) {
         }
     });
 }
+
+function updateGoal(index, newGoalText) {
+    retrieveGoals(goals => {
+        goals[index] = newGoalText;
+        storeGoals(goals, ()=>{});
+    });
+}
+
 // goal | item list functionality
 function retrieveGoals(callback) {
     chrome.storage.sync.get("userGoals", function(data) {
@@ -67,6 +75,11 @@ function createGoalElement(goal, index) {
     goalText.id = "list-text-" + index;
     goalText.textContent = goal;
     goalText.setAttribute('contenteditable', 'true');
+
+    // Add event listener to persist changes
+    goalText.addEventListener('blur', function() {
+        updateGoal(index, this.textContent);
+    });
 
     goalTextContainer.appendChild(goalText);
     goalItemContent.appendChild(goalTextContainer);
