@@ -113,7 +113,7 @@ h1{
 }
 
 /* Meta Item */
-.meta-item {
+.composition {
     background-color: #ffffff;
     padding: 5px;
     margin: 10px;
@@ -132,7 +132,7 @@ h1{
     gap: 10px;
 }
 
-.meta-item-content{
+.composition-content{
     width: 100%; /* Adjusted to take full width of the input area */
     max-width: 430px;
     padding: 10px;
@@ -140,7 +140,7 @@ h1{
     border-radius: 5px; /* Added border-radius for rounded corners */
 }
 
-.meta-item-buttons {
+.composition-buttons {
     display: flex;
     flex-direction: row;
     align-items: center; /* Vertically aligns the delete button with the middle of the check site button */
@@ -160,7 +160,7 @@ h1{
     box-shadow: inset 0px 4px 4px rgba(69, 69, 69, 0.807); /* Added inset for inner shadow */
 }
 
-/* Type in a goal and press ‘enter’ */
+/* Type in a note and press ‘enter’ */
 .text-input::placeholder {
     font-family: 'Poppins';
     font-style: normal;
@@ -283,8 +283,8 @@ ul {
 li {
     list-style-type: none;
 }
-/* Goal Items Container */
-.goal-items {
+/* note Items Container */
+.note-items {
     width: 100%;
     font-family: 'Poppins';
     display: flex;
@@ -294,8 +294,8 @@ li {
     
 }
 
-/* Play button in the meta item section */
-.meta-item-run {
+/* Play button in the composition item section */
+.composition-run {
     display: flex;
     align-items: center; /* Vertically aligns the copy button with the middle of the check site button */
     justify-content: center;
@@ -307,8 +307,8 @@ li {
     color: white;
 }
 
-/* Copy button in the meta item section */
-.meta-item-copy {
+/* Copy button in the composition item section */
+.composition-copy {
     display: flex;
     align-items: center; /* Vertically aligns the copy button with the middle of the check site button */
     justify-content: center;
@@ -320,13 +320,13 @@ li {
     border: 1px black solid;
 }
 
-.meta-item-copy:active{
+.composition-copy:active{
     background-color: #AFAFAF;
 }
 
 
-/* Clear button in the meta item section */
-.meta-item-clear {
+/* Clear button in the composition item section */
+.composition-clear {
     display: flex;
     align-items: center; /* Vertically aligns the copy button with the middle of the check site button */
     justify-content: center;
@@ -339,7 +339,7 @@ li {
 }
 
 /* Smaller Delete Button for Meta Item */
-.meta-delete-button {
+.composition-button {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -356,30 +356,30 @@ li {
     visibility: hidden; /* Initially hidden */
 }
 
-.meta-item-span:hover .meta-delete-button {
+.composition-span:hover .composition-delete-button {
     visibility: visible; /* Show on hover of the parent span */
 }
 
-.meta-delete-button:hover  {
+.composition-delete-button:hover  {
     filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.25));
 }
 
-.meta-item-clear:hover  {
-    filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.25));
-    transform: scale(1.1);
-}
-
-.meta-item-copy:hover  {
+.composition-clear:hover  {
     filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.25));
     transform: scale(1.1);
 }
 
-.meta-item-run:hover  {
+.composition-copy:hover  {
     filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.25));
     transform: scale(1.1);
 }
 
-.meta-item-run.loading  {
+.composition-run:hover  {
+    filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.25));
+    transform: scale(1.1);
+}
+
+.composition-run.loading  {
     animation: spin 2s linear infinite;
     transform: translate(-50%, -50%);
 }
@@ -389,8 +389,8 @@ li {
     transform: translate(-50%, -50%);
 }
 
-/* Meta Goal Span */
-.meta-item-span {
+/* Meta note Span */
+.composition-span {
     display: inline-block;
     border: 1px dotted #000;
     padding: 5px 10px;
@@ -401,13 +401,13 @@ li {
     transition: background-color 0.3s ease;
 }
 
-.meta-item-span:hover {
+.composition-span:hover {
     background-color: #eaeaea;
 }
 
 
-/* Goal Item */
-.goal-item {
+/* note Item */
+.note-item {
     display: flex;
     flex-direction: column;
     margin-bottom: 10px;
@@ -423,7 +423,7 @@ li {
 
 
 /* Goal Item Content (text and delete button) */
-.goal-item-content {
+.note-item-content {
     display: flex;
     justify-content: space-between; /* Places text on the left and delete button on the right */
     align-items: center;
@@ -432,25 +432,25 @@ li {
     border-radius: 10px; /* Added border-radius for rounded corners */
 }
 
-/* Change visibility of delete-button to visible when goal-item-content is hovered */
-.goal-item-content:hover .delete-button {
+/* Change visibility of delete-button to visible when note-item-content is hovered */
+.note-item-content:hover .delete-button {
     visibility: visible;
 }
 
-.goal-item-content:hover .copy-button {
+.note-item-content:hover .copy-button {
     visibility: visible;
 }
 
-.goal-item-content:hover .play-button {
+.note-item-content:hover .play-button {
     visibility: visible;
 }
 
 
-.goal-item-content:hover .check-button {
+.note-item-content:hover .check-button {
     visibility: visible;
 }
 
-.goal-item-content:hover  {
+.note-item-content:hover  {
     filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.15));
     background-color: #c8e6ff;
 }

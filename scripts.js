@@ -1,10 +1,10 @@
-const goalList = document.getElementById("goalList");
+const notesList = document.getElementById("notesList");
 
 let isLoading = false;
-let selectedGoals = [];
+let selectedNotes = [];
 
-// function storeGoals(goals, callback) {
-//     chrome.storage.sync.set({ userGoals: goals }, function() {
+// function storeNotes(notes, callback) {
+//     chrome.storage.sync.set({ userNotes: notes }, function() {
 //         if (chrome.runtime.lastError) {
 //             console.error('Error in chrome.storage.sync.set:', chrome.runtime.lastError.message);
 //         } else {
@@ -16,8 +16,8 @@ let selectedGoals = [];
 //     });
 // }
 
-function storeGoals(goals, callback) {
-    chrome.storage.local.set({ userGoals: goals }, function() {
+function storeNotes(notes, callback) {
+    chrome.storage.local.set({ userNotes: note }, function() {
         if (chrome.runtime.lastError) {
             console.error('Error in chrome.storage.local.set:', chrome.runtime.lastError.message);
         } else {
@@ -30,106 +30,106 @@ function storeGoals(goals, callback) {
 }
 
 
-function updateGoal(index, newGoalText) {
-    retrieveGoals(goals => {
-        goals[index] = newGoalText;
-        storeGoals(goals, ()=>{});
+function updateNote(index, newNoteText) {
+    retrieveNotes(notes => {
+        notes[index] = newNoteText;
+        storeNotes(notes, ()=>{});
     });
 }
 
-// // goal | item list functionality
-// function retrieveGoals(callback) {
-//     chrome.storage.sync.get("userGoals", function(data) {
-//         callback(data.userGoals || []);
+// // note | item list functionality
+// function retrieveNotes(callback) {
+//     chrome.storage.sync.get("userNotes", function(data) {
+//         callback(data.userNotes || []);
 //     });
 // }
 
-// Goal | Item list functionality
-function retrieveGoals(callback) {
-    chrome.storage.local.get("userGoals", function(data) {
-        callback(data.userGoals || []);
+// Note | Item list functionality
+function retrieveNotes(callback) {
+    chrome.storage.local.get("userNotes", function(data) {
+        callback(data.userNotes || []);
     });
 }
 
-function loadGoals() {
-    retrieveGoals(goals => {
-        goalList.innerHTML = "";
-        goals.forEach((goal, index) => {
-            const li = createGoalElement(goal, index);
-            goalList.appendChild(li);
+function loadNotes() {
+    retrieveNotes(notes => {
+        notesList.innerHTML = "";
+        notes.forEach((note, index) => {
+            const li = createNoteElement(note, index);
+            notesList.appendChild(li);
         });
     });
 }
 
-function saveGoal(goal, callback) {
-    retrieveGoals(goals => {
-        goals.push(goal);
-        storeGoals(goals, callback);
+function saveNote(note, callback) {
+    retrieveNotes(notes => {
+        notes.push(note);
+        storeNotes(notes, callback);
     });
 }
 
-function deleteGoal(index) {
-    retrieveGoals(goals => {
-        goals.splice(index, 1);
-        storeGoals(goals, ()=>{});
-        loadGoals();
+function deleteNote(index) {
+    retrieveNotes(notes => {
+        notes.splice(index, 1);
+        storeNotes(notes, ()=>{});
+        loadNotes();
     });
 }
 
-function createGoalElement(goal, index) {
-    // Create a div as the container for each goal item
+function createNoteElement(note, index) {
+    // Create a div as the container for each note item
     const div = document.createElement("div");
-    div.className = "goal-item";
-    div.id = "goal-item-" + index; // Assign a unique id to each goal item
+    div.className = "note-item";
+    div.id = "note-item-" + index; // Assign a unique id to each note item
 
-    // Create another div to hold the goal text and delete button
-    const goalItemContent = document.createElement("div");
-    goalItemContent.className = "goal-item-content";
-    goalItemContent.id = "goal-item-content" + index
+    // Create another div to hold the note text and delete button
+    const noteItemContent = document.createElement("div");
+    noteItemContent.className = "note-item-content";
+    noteItemContent.id = "note-item-content" + index
 
-    // Create and append the goal text span to goalItemContent
-    const goalTextContainer = document.createElement("div");
-    goalTextContainer.className = "text-container";
-    goalTextContainer.id = "text-container-" + index;
+    // Create and append the note text span to noteItemContent
+    const noteTextContainer = document.createElement("div");
+    noteTextContainer.className = "text-container";
+    noteTextContainer.id = "text-container-" + index;
 
-    const goalText = document.createElement("span");
-    goalText.className = "list-text";
-    goalText.id = "list-text-" + index;
-    goalText.textContent = goal;
-    goalText.setAttribute('contenteditable', 'true');
+    const noteText = document.createElement("span");
+    noteText.className = "list-text";
+    noteText.id = "list-text-" + index;
+    noteText.textContent = note;
+    noteText.setAttribute('contenteditable', 'true');
 
     // Add event listener to persist changes
-    goalText.addEventListener('blur', function() {
-        updateGoal(index, this.textContent);
+    noteText.addEventListener('blur', function() {
+        updateNote(index, this.textContent);
     });
 
-    goalTextContainer.appendChild(goalText);
-    goalItemContent.appendChild(goalTextContainer);
+    noteTextContainer.appendChild(noteText);
+    noteItemContent.appendChild(noteTextContainer);
 
     const buttonsBox = document.createElement("div");
     buttonsBox.className = "list-button-box"
     buttonsBox.id = "list-button-box-" + index;
 
     // Create and append the check button to the buttonBox
-    const checkButton = createCheckButton(index, goal);
+    const checkButton = createCheckButton(index, note);
     buttonsBox.appendChild(checkButton);
 
     // Create and append the play button to the buttonBox
-    const playButton = createPlayButton(goal, index);
+    const playButton = createPlayButton(note, index);
     buttonsBox.appendChild(playButton);
 
     // Create and append the copy button to the buttonBox
-    const copyButton = createCopyButton(goal, index);
+    const copyButton = createCopyButton(note, index);
     buttonsBox.appendChild(copyButton);
 
     const deleteButton = createDeleteButton(index);
     buttonsBox.appendChild(deleteButton);
 
-    // Append the delete button to goalItemContent
-    goalItemContent.appendChild(buttonsBox);
+    // Append the delete button to noteItemContent
+    noteItemContent.appendChild(buttonsBox);
 
-    // Append goalItemContent to the main div
-    div.appendChild(goalItemContent);
+    // Append noteItemContent to the main div
+    div.appendChild(noteItemContent);
 
     const explanationTray = document.createElement("div");
     explanationTray.className = "explanation-tray";
@@ -147,12 +147,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
     }
     if (message.type === "highlightedText") {
-        saveGoal(message.text, loadGoals);
+        saveNote(message.text, loadNotes);
     }
     // Required for async response: keep the message channel open until sendResponse is called
     return true;
 });
-
+// <div className="delete-button"><i className="fa solid fa-x"></i></div>
 function createDeleteButton(index) {
     // Create a div for the delete button
     const deleteButton = document.createElement("div");
@@ -164,11 +164,11 @@ function createDeleteButton(index) {
     xText.style.color = "white"
     deleteButton.appendChild(xText);
 
-    deleteButton.addEventListener("click", () => deleteGoal(index));
+    deleteButton.addEventListener("click", () => deleteNote(index));
     return deleteButton;
 }
 
-function createCopyButton(goal, index) {
+function createCopyButton(note, index) {
     // Create a div for the copy button
     const copyButton = document.createElement("div");
     copyButton.className = "copy-button";
@@ -181,9 +181,9 @@ function createCopyButton(goal, index) {
 
     // Add event listener to the copy button to handle the copy action
     copyButton.addEventListener("click", function() {
-        // Copy the goal content to clipboard
+        // Copy the note content to clipboard
         const textArea = document.createElement("textarea");
-        textArea.value = goal;
+        textArea.value = note;
         document.body.appendChild(textArea);
         textArea.select();
         document.execCommand("copy");
@@ -193,7 +193,7 @@ function createCopyButton(goal, index) {
     return copyButton;
 }
 
-function createPlayButton(goal, index) {
+function createPlayButton(note, index) {
     // Create a div for the play button
     const playButton = document.createElement("div");
     playButton.className = "play-button";
@@ -212,16 +212,14 @@ function createPlayButton(goal, index) {
         makeAPIRequest({
             model: "gpt-3.5-turbo",
             messages: [
-                { role: "user", content: goal }
+                { role: "user", content: note }
             ]
         }, function(response) {
-            playButton.classList.remove('loading'); // Remove loading animation
-
             // Create and display the expand tray similar to the site check function
             const feedback = response;
-            const expandTray = expandGoal(index, feedback);
-            const goalContentBox = document.getElementById("goal-item-content" + index);
-            goalContentBox.parentElement.appendChild(expandTray); 
+            const expandTray = expandNote(index, feedback);
+            const noteContentBox = document.getElementById("note-item-content" + index);
+            noteContentBox.parentElement.appendChild(expandTray);
 
             const existingExpandButton = document.getElementById("expand-button-" + index);
             if (!existingExpandButton) {
@@ -241,7 +239,7 @@ function createPlayButton(goal, index) {
     return playButton;
 }
 
-function createCheckButton(index, goal) {
+function createCheckButton(index, note) {
     const checkButton = document.createElement("div");
     checkButton.className = "check-button";
 
@@ -250,26 +248,26 @@ function createCheckButton(index, goal) {
     checkIcon.style.color = "white";
     checkButton.appendChild(checkIcon);
 
-    // Extract the goal text using the index
-    const goalText = goal
+    // Extract the note text using the index
+    const noteText = note
 
-    if (selectedGoals.includes(goalText)) {
+    if (selectedNotes.includes(noteText)) {
         checkButton.classList.add('selected');
     }
 
     checkButton.addEventListener("click", function() {
-        if (selectedGoals.includes(goalText)) {
-            // If the goal is already selected, deselect it
-            selectedGoals.splice(selectedGoals.indexOf(goalText), 1);
+        if (selectedNotes.includes(noteText)) {
+            // If the note is already selected, deselect it
+            selectedNotes.splice(selectedNotes.indexOf(noteText), 1);
             checkIcon.style.color = "white";
             checkButton.classList.remove('selected');
         } else {
-            // Otherwise, select the goal
-            selectedGoals.push(goalText);
+            // Otherwise, select the note
+            selectedNotes.push(noteText);
             checkIcon.style.color = "black";
             checkButton.classList.add('selected');
         }
-        updateMetaItem();
+        updateComposition();
     });
 
     return checkButton;
@@ -293,7 +291,7 @@ function createExpandButton(index) {
     return expandButton;
 }
 
-function expandGoal(index, feedback) {
+function expandNote(index, feedback) {
     const expandTray = document.createElement("div");
     expandTray.className = "expand-tray";
     expandTray.id = "expand-tray-" + index;
@@ -310,9 +308,9 @@ function toggleExpandTray(identifier) {
     let targetElement;
     const expandButton = document.getElementById("expand-button-" + identifier);
     const plusText = document.getElementById("plus-text-" + identifier);
-    // If identifier is a number, it's a goal item; otherwise, it's a custom element (like "meta-item-response")
+    // If identifier is a number, it's a note item; otherwise, it's a custom element (like "composition-response")
     if (typeof identifier === "number") {
-        targetElement = document.getElementById("goal-item-content" + identifier);
+        targetElement = document.getElementById("note-item-content" + identifier);
     } else {
         targetElement = document.getElementById(identifier);
     }
@@ -341,100 +339,100 @@ function displayFeedback(feedbackList) {
     feedbackDiv.innerHTML = '';
     if (!feedbackList.length) {
         const p = document.createElement("p");
-        p.textContent = "This site does not appear to be relevant to any of your stated goals"
+        p.textContent = "This site does not appear to be relevant to any of your stated notes"
         feedbackDiv.appendChild(p);
     }
 }
-// // meta item functionality
-// function storeSelectedGoals() {
-//     chrome.storage.sync.set({ metaGoals: selectedGoals }, function() {
+// // composition item functionality
+// function storeSelectedNotes() {
+//     chrome.storage.sync.set({ composition: selectedNotes }, function() {
 //         if (chrome.runtime.lastError) {
 //             console.error('Error in chrome.storage.sync.set:', chrome.runtime.lastError.message);
 //         }
 //     });
 // }
 
-// Meta item functionality
-function storeSelectedGoals() {
-    chrome.storage.local.set({ metaGoals: selectedGoals }, function() {
+// Composition functionality
+function storeSelectedNotes() {
+    chrome.storage.local.set({ composition: selectedNotes }, function() {
         if (chrome.runtime.lastError) {
             console.error('Error in chrome.storage.local.set:', chrome.runtime.lastError.message);
         }
     });
 }
 
-// function retrieveSelectedGoals(callback) {
-//     chrome.storage.sync.get("metaGoals", function(data) {
-//         callback(data.metaGoals || []);
+// function retrieveSelectedNotes(callback) {
+//     chrome.storage.sync.get("composition", function(data) {
+//         callback(data.composition || []);
 //     });
 // }
 
 
-function retrieveSelectedGoals(callback) {
-    chrome.storage.local.get("metaGoals", function(data) {
-        callback(data.metaGoals || []);
+function retrieveSelectedNotes(callback) {
+    chrome.storage.local.get("composition", function(data) {
+        callback(data.composition || []);
     });
 }
 
-function updateMetaItem() {
-    const metaItemContent = document.getElementById("meta-item-content");
-    metaItemContent.innerHTML = ""; // Clear previous content
-    selectedGoals.forEach((goalText, index) => {
+function updateComposition() {
+    const compositionContent = document.getElementById("composition-content");
+    compositionContent.innerHTML = ""; // Clear previous content
+    selectedNotes.forEach((noteText, index) => {
         const span = document.createElement("span");
-        span.className = "meta-item-span";
-        span.textContent = goalText.length > 15 ? goalText.substring(0, 15) + "..." : goalText;
+        span.className = "composition-span";
+        span.textContent = noteText.length > 15 ? noteText.substring(0, 15) + "..." : noteText;
 
         const deleteButton = document.createElement("div");
-        deleteButton.className = "meta-delete-button";
+        deleteButton.className = "composition-delete-button";
         const xText = document.createElement("i");
         xText.className = "fa-solid fa-x fa-xs";
         deleteButton.appendChild(xText);
-        deleteButton.addEventListener("click", () => deleteMetaItem(goalText)); // We pass goalText instead of index
+        deleteButton.addEventListener("click", () => deleteComposition(noteText)); // We pass noteText instead of index
         span.appendChild(deleteButton);
 
-        metaItemContent.appendChild(span);
+        compositionContent.appendChild(span);
     });
     // Add the check here:
-    const metaItem = document.getElementById("meta-item");
-    if (!selectedGoals.length) {
-        metaItem.style.display = "none";
+    const composition = document.getElementById("composition");
+    if (!selectedNotes.length) {
+        composition.style.display = "none";
     } else {
-        metaItem.style.display = "flex";
+        composition.style.display = "flex";
     }
 }
 
-function initializeMetaItem() {
-    // Retrieve stored meta items and display them
-    retrieveSelectedGoals(storedMetaGoals => {
-        selectedGoals = storedMetaGoals;
-        updateMetaItem();
+function initializeComposition() {
+    // Retrieve stored composition items and display them
+    retrieveSelectedNotes(storedComposition => {
+        selectedNotes = storedComposition;
+        updateComposition();
     });
 }
 
 
-const clearButton = document.querySelector(".meta-item-clear");
+const clearButton = document.querySelector(".composition-clear");
 clearButton.addEventListener("click", function() {
-    selectedGoals = [];
+    selectedNotes = [];
 
-    // Unselect checkmarks on all goal items
-    const goalList = document.getElementById("goalList");
+    // Unselect checkmarks on all note items
+    const notesList = document.getElementById("notesList");
 
-    Array.from(goalList.children).forEach(goalItem => {
-        const checkButton = goalItem.querySelector(".check-button");
+    Array.from(notesList.children).forEach(noteItem => {
+        const checkButton = noteItem.querySelector(".check-button");
         checkButton.classList.remove('selected');
     });
 
-    updateMetaItem();
-    storeSelectedGoals();
+    updateComposition();
+    storeSelectedNotes();
     }
 );
 
-// Reference to the meta-item-copy button
-const copyButton = document.querySelector(".meta-item-copy");
+// Reference to the composition-copy button
+const copyButton = document.querySelector(".composition-copy");
 
 // Event listener to handle the copy action
 copyButton.addEventListener("click", function() {
-    const combinedText = selectedGoals.join(" ");
+    const combinedText = selectedNotes.join(" ");
 
     // Using Clipboard API to copy text
     navigator.clipboard.writeText(combinedText).then(function() {
@@ -447,9 +445,9 @@ copyButton.addEventListener("click", function() {
 });
 
 // Run button: Combine texts and send to API
-const runButton = document.querySelector(".meta-item-run");
+const runButton = document.querySelector(".composition-run");
 runButton.addEventListener("click", function() {
-    const combinedText = selectedGoals.join(";\n ");
+    const combinedText = selectedNotes.join(";\n ");
 
     // Start loading animation
     isLoading = true;
@@ -469,19 +467,19 @@ runButton.addEventListener("click", function() {
         document.getElementById('brand-area').classList.remove('loading');
         isLoading = false;
 
-        // Display the response in an expand tray beneath the meta item
+        // Display the response in an expand tray beneath the composition item
         const feedback = response;
-        const expandTray = createExpandTrayForElement("meta-item", feedback);
-        const parent = document.getElementById('meta-item')
+        const expandTray = createExpandTrayForElement("composition", feedback);
+        const parent = document.getElementById('composition')
         parent.appendChild(expandTray);
         // If no existing expand button, create one
-        const existingExpandButton = document.getElementById("expand-button-meta-item");
+        const existingExpandButton = document.getElementById("expand-button-composition");
         if (!existingExpandButton) {
-            const expandButton = createExpandButton("meta-item");
+            const expandButton = createExpandButton("composition");
             expandButton.style.display = "flex";
             expandButton.style.width = '30px';
             expandButton.style.height = '30px';
-            const buttonBox = document.getElementById("meta-item-buttons");
+            const buttonBox = document.getElementById("composition-buttons");
             buttonBox.appendChild(expandButton);
         }
         document.getElementById('brand-area').classList.remove('loading');
@@ -489,29 +487,29 @@ runButton.addEventListener("click", function() {
         runButton.classList.remove('loading');
         isLoading = false;
         // Automatically open the tray
-        toggleExpandTray("meta-item");
+        toggleExpandTray("composition");
     });
 });
 
-function deleteMetaItem(goalText) {
-    const idx = selectedGoals.indexOf(goalText);
+function deleteComposition(noteText) {
+    const idx = selectedNotes.indexOf(noteText);
     if (idx > -1) {
-        selectedGoals.splice(idx, 1); // Remove the goal from the array
+        selectedNotes.splice(idx, 1); // Remove the note from the array
 
-        const goalList = document.getElementById("goalList");
-        // Find the goal item with this text and reset its checkmark
-        Array.from(goalList.children).forEach(goalItem => {
-            const itemText = goalItem.querySelector(".list-text").textContent;
-            if (itemText === goalText) {
-                const checkButton = goalItem.querySelector(".check-button");
+        const notesList = document.getElementById("notesList");
+        // Find the note item with this text and reset its checkmark
+        Array.from(notesList.children).forEach(noteItem => {
+            const itemText = noteItem.querySelector(".list-text").textContent;
+            if (itemText === noteText) {
+                const checkButton = noteItem.querySelector(".check-button");
                 checkButton.classList.remove('selected');
             }
         });
 
-        updateMetaItem(); // Refresh the meta item
+        updateComposition(); // Refresh the composition
     }
 }
-// expand tray for meta items
+// expand tray for compositions
 function createExpandTrayForElement(elementId, feedback) {
     // Create the expand tray with the given feedback
     const expandTray = document.createElement("div");
@@ -539,13 +537,13 @@ async function summarizeContent(fulltext, callback) {
     });
 }
 
-async function isContentRelevantToGoal(content, goal, callback) {
-    // console.log('isContentRelevantToGoal', content, goal);
+async function isContentRelevantToNote(content, note, callback) {
+    // console.log('isContentRelevantToNote', content, note);
     const relevanceRequestPayload = {
         model: "gpt-3.5-turbo",
         messages: [
             // { role: "system", content: "You are a helpful assistant." },
-            { role: "user", content: `Is this text "${content}" relevant to my note: "${goal}"? answer in this format: <yes/no>, <explanation>` }
+            { role: "user", content: `Is this text "${content}" relevant to my note: "${note}"? answer in this format: <yes/no>, <explanation>` }
         ]
     };
 
@@ -584,28 +582,28 @@ async function makeAPIRequest(payload, callback) {
 function attachResponse(relevanceResponse, feedbackList, index){
     const answer = relevanceResponse.isRelevant ? 'Yes' : 'No';
     const fullResponse = `${answer}, ${relevanceResponse.explanation}`
-    // Select the goal item using its unique id and change its background color to green
-    const matchingGoal = document.getElementById("list-text-" + index)
-    matchingGoal.parentElement.classList.add("matched-item")
+    // Select the note item using its unique id and change its background color to green
+    const matchingNote = document.getElementById("list-text-" + index)
+    matchingNote.parentElement.classList.add("matched-item")
 
     const feedback = fullResponse;
-    const expandTray = expandGoal(index, feedback);
-    const goalContentBox = document.getElementById("goal-item-content" + index);
-    goalContentBox.parentElement.appendChild(expandTray); // Append the expand tray to the parent of the matching goal
+    const expandTray = expandNote(index, feedback);
+    const noteContentBox = document.getElementById("note-item-content" + index);
+    noteContentBox.parentElement.appendChild(expandTray); // Append the expand tray to the parent of the matching note
 
     const expandButton = createExpandButton(index);
     expandButton.style.display = "flex"; // Make the expand button visible
     const buttonBox = document.getElementById("list-button-box-" + index)
-    buttonBox.appendChild(expandButton); // Append the expand button to the parent of the matching goal
+    buttonBox.appendChild(expandButton); // Append the expand button to the parent of the matching note
 
     feedbackList.push(fullResponse);
 }
 
 
 document.addEventListener("DOMContentLoaded", function () {
-    loadGoals();
-    initializeMetaItem();
-    const goalInput = document.getElementById("goalInput");
+    loadNotes();
+    initializeComposition();
+    const noteInput = document.getElementById("noteInput");
     document.getElementById('analyzeButton').addEventListener("click", async function() {
         if (isLoading) return; // Prevent multiple clicks while loading
         // console.log("this.classList",this.classList)
@@ -616,25 +614,25 @@ document.addEventListener("DOMContentLoaded", function () {
             // const shortenedContent = response// Taking the first 1.5k characters
             summarizeContent(response, function (summary) {
                 // console.log("response", response)
-                retrieveGoals(goals => {
+                retrieveNotes(notes => {
                     let feedbackList = [];
-                    let completedGoals = 0;
+                    let completedNotes = 0;
 
-                    if(goals.length === 0) {
-                        displayFeedback(["No goals to analyze against."]);
+                    if(notes.length === 0) {
+                        displayFeedback(["No notes to analyze against."]);
                         return;
                     }
-                    goals.forEach((goal, index) => {
-                        isContentRelevantToGoal(summary, goal, function(relevanceResponse) {
-                            console.log('isContentRelevantToGoal response isRelevant, explanation', relevanceResponse.isRelevant, relevanceResponse.explanation)
-                            completedGoals++;
+                    notes.forEach((note, index) => {
+                        isContentRelevantToNote(summary, note, function(relevanceResponse) {
+                            console.log('isContentRelevantToNote response isRelevant, explanation', relevanceResponse.isRelevant, relevanceResponse.explanation)
+                            completedNotes++;
 
                             // Check if the relevanceResponse indicates a match
                             if (relevanceResponse.isRelevant) {
                                 attachResponse(relevanceResponse, feedbackList, index)
                             }
-                            // console.log('feedbackList', feedbackList, "completedGoals",completedGoals )
-                            if (completedGoals === goals.length) {
+                            // console.log('feedbackList', feedbackList, "completedNotes",completedNotes )
+                            if (completedNotes === notes.length) {
                                 displayFeedback(feedbackList);
                             }
                             document.getElementById('brand-area').classList.remove('loading');
@@ -648,44 +646,44 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    goalInput.addEventListener("keypress", function(e) {
+    noteInput.addEventListener("keypress", function(e) {
         if (e.key === 'Enter') {  // Check if the 'Enter' key was pressed
-            const goal = goalInput.value.trim();
-            if (goal) {
-                saveGoal(goal, () => {
-                    goalInput.value = "";  // Clear the input field
-                    loadGoals();
+            const note = noteInput.value.trim();
+            if (note) {
+                saveNote(note, () => {
+                    noteInput.value = "";  // Clear the input field
+                    loadNotes();
                 });
             }
             e.preventDefault();  // Prevent the default behavior of the 'Enter' key (e.g., form submission)
         }
     });
 
-    // Event listener for editing goal text
-    goalList.addEventListener("click", function(e) {
-        if (e.target.classList.contains("goalText")) {
-            const goalTextElement = e.target;
-            goalTextElement.contentEditable = true;
-            goalTextElement.focus();
+    // Event listener for editing note text
+    notesList.addEventListener("click", function(e) {
+        if (e.target.classList.contains("noteText")) {
+            const noteTextElement = e.target;
+            noteTextElement.contentEditable = true;
+            noteTextElement.focus();
         }
     });
 
-    goalList.addEventListener("click", function(e) {
+    notesList.addEventListener("click", function(e) {
         if (e.target.classList.contains("checkmark")) {
-            const goalText = e.target.previousElementSibling.textContent;
-            selectedGoals.push(goalText);
-            updateMetaItem();
-            storeSelectedGoals();
+            const noteText = e.target.previousElementSibling.textContent;
+            selectedNotes.push(noteText);
+            updateComposition();
+            storeSelectedNotes();
         }
     });
 
-    // Event listener for when user stops typing in the goal text
-    goalList.addEventListener("input", function(e) {
-        if (e.target.classList.contains("goalText")) {
-            const goalTextElement = e.target;
-            // Here, you can update the goal text wherever you're storing it
+    // Event listener for when user stops typing in the note text
+    notesList.addEventListener("input", function(e) {
+        if (e.target.classList.contains("noteText")) {
+            const noteTextElement = e.target;
+            // Here, you can update the note text wherever you're storing it
             // For this example, let's just log the updated text
-            // console.log(goalTextElement.innerText);
+            // console.log(noteTextElement.innerText);
         }
     });
 
