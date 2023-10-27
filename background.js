@@ -38,10 +38,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 const content = results && results[0] && results[0].result;
                 if (content) {
                     const contentLength = content.length;
-                    if (contentLength >= 2100) {
-                        const firstSlice = content.slice(0, 700);
-                        const middleSlice = content.slice(Math.floor(contentLength / 2) - 350, Math.floor(contentLength / 2) + 350);
-                        const lastSlice = content.slice(contentLength - 700);
+                    if (contentLength >= 2700) {
+                        const firstSlice = content.slice(0, 900);
+                        const middleSlice = content.slice(Math.floor(contentLength / 2) - 450, Math.floor(contentLength / 2) + 450);
+                        const lastSlice = content.slice(contentLength - 900);
                         const truncatedContent = link + firstSlice + middleSlice + lastSlice;
                         sendResponse({ content: truncatedContent });
                     } else {

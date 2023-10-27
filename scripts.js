@@ -1,19 +1,34 @@
 const goalList = document.getElementById("goalList");
+
 let isLoading = false;
 let selectedGoals = [];
 
+// function storeGoals(goals, callback) {
+//     chrome.storage.sync.set({ userGoals: goals }, function() {
+//         if (chrome.runtime.lastError) {
+//             console.error('Error in chrome.storage.sync.set:', chrome.runtime.lastError.message);
+//         } else {
+//             console.log('Data is stored in Chrome storage, executing callback...');
+//             if (callback) {
+//                 callback();
+//             };
+//         }
+//     });
+// }
+
 function storeGoals(goals, callback) {
-    chrome.storage.sync.set({ userGoals: goals }, function() {
+    chrome.storage.local.set({ userGoals: goals }, function() {
         if (chrome.runtime.lastError) {
-            console.error('Error in chrome.storage.sync.set:', chrome.runtime.lastError.message);
+            console.error('Error in chrome.storage.local.set:', chrome.runtime.lastError.message);
         } else {
-            console.log('Data is stored in Chrome storage, executing callback...');
+            console.log('Data is stored in local Chrome storage, executing callback...');
             if (callback) {
                 callback();
             };
         }
     });
 }
+
 
 function updateGoal(index, newGoalText) {
     retrieveGoals(goals => {
@@ -22,9 +37,16 @@ function updateGoal(index, newGoalText) {
     });
 }
 
-// goal | item list functionality
+// // goal | item list functionality
+// function retrieveGoals(callback) {
+//     chrome.storage.sync.get("userGoals", function(data) {
+//         callback(data.userGoals || []);
+//     });
+// }
+
+// Goal | Item list functionality
 function retrieveGoals(callback) {
-    chrome.storage.sync.get("userGoals", function(data) {
+    chrome.storage.local.get("userGoals", function(data) {
         callback(data.userGoals || []);
     });
 }
@@ -323,17 +345,33 @@ function displayFeedback(feedbackList) {
         feedbackDiv.appendChild(p);
     }
 }
-// meta item functionality
+// // meta item functionality
+// function storeSelectedGoals() {
+//     chrome.storage.sync.set({ metaGoals: selectedGoals }, function() {
+//         if (chrome.runtime.lastError) {
+//             console.error('Error in chrome.storage.sync.set:', chrome.runtime.lastError.message);
+//         }
+//     });
+// }
+
+// Meta item functionality
 function storeSelectedGoals() {
-    chrome.storage.sync.set({ metaGoals: selectedGoals }, function() {
+    chrome.storage.local.set({ metaGoals: selectedGoals }, function() {
         if (chrome.runtime.lastError) {
-            console.error('Error in chrome.storage.sync.set:', chrome.runtime.lastError.message);
+            console.error('Error in chrome.storage.local.set:', chrome.runtime.lastError.message);
         }
     });
 }
 
+// function retrieveSelectedGoals(callback) {
+//     chrome.storage.sync.get("metaGoals", function(data) {
+//         callback(data.metaGoals || []);
+//     });
+// }
+
+
 function retrieveSelectedGoals(callback) {
-    chrome.storage.sync.get("metaGoals", function(data) {
+    chrome.storage.local.get("metaGoals", function(data) {
         callback(data.metaGoals || []);
     });
 }
@@ -411,7 +449,7 @@ copyButton.addEventListener("click", function() {
 // Run button: Combine texts and send to API
 const runButton = document.querySelector(".meta-item-run");
 runButton.addEventListener("click", function() {
-    const combinedText = selectedGoals.join(" ");
+    const combinedText = selectedGoals.join(";\n ");
 
     // Start loading animation
     isLoading = true;
@@ -507,7 +545,7 @@ async function isContentRelevantToGoal(content, goal, callback) {
         model: "gpt-3.5-turbo",
         messages: [
             // { role: "system", content: "You are a helpful assistant." },
-            { role: "user", content: `Is this text "${content}" relevant to my goal of "${goal}"? answer in this format: <yes/no>, <explanation>` }
+            { role: "user", content: `Is this text "${content}" relevant to my note: "${goal}"? answer in this format: <yes/no>, <explanation>` }
         ]
     };
 
