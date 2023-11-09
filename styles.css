@@ -15,6 +15,23 @@ body {
     border-radius: 10px !important;
 }
 
+.code-block-formatting pre code {
+  display: block;
+  white-space: pre-wrap;       /* Since CSS 2.1 */
+  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+  white-space: -pre-wrap;      /* Opera 4-6 */
+  white-space: -o-pre-wrap;    /* Opera 7 */
+  word-wrap: break-word;       /* Internet Explorer 5.5+ */
+  padding: 1em;
+  margin: 0.5em 0;
+  overflow-x: auto;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+
 .container {
     width: 450px;
     margin: auto;
@@ -495,6 +512,18 @@ li {
     gap:1px;
 }
 
+/* list Button */
+.expand-button-box {
+    display: flex;
+    flex-direction: row;
+    align-items: center; /* Vertically aligns the delete button with the middle of the check site button */
+    width: 100%; /* Adjust the width as needed */
+    height: auto; /* Adjust the height as needed */
+    cursor: pointer;
+    padding: 2px;
+    gap:2px;
+}
+
 /* Delete Button */
 .delete-button {
     display: flex;
@@ -540,6 +569,24 @@ li {
     cursor: pointer;
     border: 1px black solid;
     visibility: hidden;
+}
+
+.add-button {
+    display: flex;
+    align-items: center; /* Vertically aligns the copy button with the middle of the check site button */
+    justify-content: center;
+    width: 20px; /* Adjust the width as needed */
+    height: 20px; /* Adjust the height as needed */
+    background-color: #ffffff;
+    border-radius: 50%; /* Makes it a circle */
+    cursor: pointer;
+    border: 1px black solid;
+}
+
+.expand-tray .copy-button{
+    visibility: visible;
+    top:0;
+    right:0;
 }
 
 .copy-button:active{
@@ -600,14 +647,43 @@ li {
     box-shadow: inset 4px 4px 4px 4px rgba(0, 0, 0, 0.25); /* Added inset for inner shadow */
 }
 
+/* Original styles for .expand-tray */
 .expand-tray {
-    display: none;
-    padding: 10px;
-    background-color: #ffff;
-    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25) inset;
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;
+  display: none; /* Initially hidden, but will be shown when expanded */
+  padding: 10px;
+  background-color: #ffff;
+  box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25) inset;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
 }
+
+/* Additional styles for pre and code tags inside .expand-tray */
+.expand-tray pre {
+  background-color: #E8E8E8; /* Light grey background */
+  border: 1px solid #ccc; /* Grey border */
+  border-radius: 4px; /* Slightly rounded corners for the pre block */
+  overflow-x: auto; /* Horizontal scrolling if code overflows */
+  padding: 10px; /* Padding inside the pre block */
+  margin-top: 10px; /* Margin at the top of the pre block */
+  font-weight: 600;
+  color: #00805E;
+  white-space: pre-wrap; /* Preserve whitespace */
+  word-wrap: break-word; /* Allow long lines to wrap */
+  font-family: monospace; /* Monospace font for code */
+}
+
+/* Ensure that code within pre tags does not have additional padding or margins */
+.expand-tray pre code {
+  padding: 0;
+  margin: 0;
+  font-size: 0.9em; /* You can adjust the font size if needed */
+}
+
+.expand-tray pre:hover  {
+    filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.25));
+    transform: scale(1.02);
+}
+
 
 .x-text {
     font-family: 'Inter';

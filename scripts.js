@@ -3,19 +3,6 @@ const notesList = document.getElementById("notesList");
 let isLoading = false;
 let selectedNotes = [];
 
-// function storeNotes(notes, callback) {
-//     chrome.storage.sync.set({ userNotes: notes }, function() {
-//         if (chrome.runtime.lastError) {
-//             console.error('Error in chrome.storage.sync.set:', chrome.runtime.lastError.message);
-//         } else {
-//             console.log('Data is stored in Chrome storage, executing callback...');
-//             if (callback) {
-//                 callback();
-//             };
-//         }
-//     });
-// }
-
 function storeNotes(notes, callback) {
     chrome.storage.local.set({ userNotes: notes }, function() {
         if (chrome.runtime.lastError) {
@@ -37,12 +24,6 @@ function updateNote(index, newNoteText) {
     });
 }
 
-// // note | item list functionality
-// function retrieveNotes(callback) {
-//     chrome.storage.sync.get("userNotes", function(data) {
-//         callback(data.userNotes || []);
-//     });
-// }
 
 // Note | Item list functionality
 function retrieveNotes(callback) {
@@ -291,16 +272,97 @@ function createExpandButton(index) {
     return expandButton;
 }
 
-function expandNote(index, feedback) {
-    const expandTray = document.createElement("div");
-    expandTray.className = "expand-tray";
-    expandTray.id = "expand-tray-" + index;
-    expandTray.style.display = "none"; // Set initial display to none
-    expandTray.style.boxShadow = "0px 4px 4px 2px rgba(0, 0, 0, 0.25) inset";
-    expandTray.style.background = "#FFFF";
-    expandTray.textContent = feedback; // Append the feedback
-    return expandTray;
+// function expandNote(index, feedback) {
+//     const expandTray = document.createElement("div");
+//     expandTray.className = "expand-tray";
+//     expandTray.id = "expand-tray-" + index;
+//     expandTray.style.display = "none"; // Set initial display to none
+//     expandTray.style.boxShadow = "0px 4px 4px 2px rgba(0, 0, 0, 0.25) inset";
+//     expandTray.style.background = "#FFFF";
+//     expandTray.textContent = feedback; // Append the feedback
+//     return expandTray;
+// }
+
+function addToNotes(text) {
+    saveNote(text, loadNotes)
 }
+
+function createAddToNotesButton(text) {
+     // Create a div for the copy button
+    const addButton = document.createElement("span");
+    addButton.className = "add-button";
+
+    // Create an icon element for the copy symbol
+    const addIcon = document.createElement("i");
+    addIcon.className = "fa-solid fa-notes-medical"; // Using the Font Awesome class for the copy icon
+    // Append the copy icon to the copy button
+    addButton.appendChild(addIcon);
+
+    // Add event listener to the copy button to handle the copy action
+    addButton.addEventListener("click", function() {
+        // Copy the note content to clipboard
+      addToNotes(text)
+    });
+
+    return addButton;
+}
+
+function createCopyAndAddButtonsForExpandTray(text, parent, index) {
+    const copyButton = createCopyButton(text, index)
+    const addButton = createAddToNotesButton(text, index)
+    const expandButtons = document.createElement("div");
+    expandButtons.className = "expand-button-box"
+    expandButtons.id = "expand-buttons-"+ index
+    expandButtons.appendChild(copyButton);
+    expandButtons.appendChild(addButton);
+    parent.appendChild(expandButtons);
+}
+
+// expand tray for compositions
+function createExpandTrayForElement(elementId, feedback) {
+    // Create the expand tray with the given feedback
+    // const expandTray = document.createElement("div");
+    // expandTray.className = "expand-tray";
+    // expandTray.id = "expand-tray-" + elementId;
+    // expandTray.style.display = "none"; // Set initial display to none
+    // expandTray.style.boxShadow = "0px 4px 4px 2px rgba(0, 0, 0, 0.25) inset";
+    // expandTray.style.background = "#FFFDFA";
+    // expandTray.textContent = feedback; // Append the feedback
+    // return expandTray; // Return the expand tray in case further manipulation is needed
+    return expandNote(elementId, feedback)
+}
+
+function expandNote(index, feedback) {
+  const expandTray = document.createElement("div");
+  expandTray.className = "expand-tray";
+  expandTray.id = "expand-tray-" + index;
+  expandTray.style.display = "none"; // Set initial display to none
+  expandTray.style.boxShadow = "0px 4px 4px 2px rgba(0, 0, 0, 0.25) inset";
+  expandTray.style.background = "#FFFF";
+
+  // Split the feedback into parts based on the code block syntax
+  const parts = feedback.split(/(```.*?```)/gs);
+
+  // Loop through each part and append it appropriately
+  parts.forEach(part => {
+    if (part.startsWith('```') && part.endsWith('```')) {
+        // It's a code block, remove the backticks and create a preformatted element
+        const codeContent = part.replace(/```/g, '').trim();
+        const pre = document.createElement("pre");
+        const code = document.createElement("code");
+        // Add text content to the code element
+        code.textContent = codeContent;
+        pre.appendChild(code);
+        createCopyAndAddButtonsForExpandTray(codeContent.toString(), pre, index)
+        expandTray.appendChild(pre);
+    } else {
+      // It's normal text, create a text node and append it
+      expandTray.appendChild(document.createTextNode(part));
+    }
+  });
+    createCopyAndAddButtonsForExpandTray(feedback, expandTray, index)
+  return expandTray;
+};
 
 
 function toggleExpandTray(identifier) {
@@ -509,18 +571,7 @@ function deleteComposition(noteText) {
         updateComposition(); // Refresh the composition
     }
 }
-// expand tray for compositions
-function createExpandTrayForElement(elementId, feedback) {
-    // Create the expand tray with the given feedback
-    const expandTray = document.createElement("div");
-    expandTray.className = "expand-tray";
-    expandTray.id = "expand-tray-" + elementId;
-    expandTray.style.display = "none"; // Set initial display to none
-    expandTray.style.boxShadow = "0px 4px 4px 2px rgba(0, 0, 0, 0.25) inset";
-    expandTray.style.background = "#FFFDFA";
-    expandTray.textContent = feedback; // Append the feedback
-    return expandTray; // Return the expand tray in case further manipulation is needed
-}
+
 
 // api request stuff
 async function summarizeContent(fulltext, callback) {
@@ -532,13 +583,11 @@ async function summarizeContent(fulltext, callback) {
     };
     makeAPIRequest(summaryRequestPayload, (response) => {
         const summary = response;
-        // console.log(`Summary: ${summary ? ` ${summary}` : ''}`);
         callback(summary);
     });
 }
 
 async function isContentRelevantToNote(content, note, callback) {
-    // console.log('isContentRelevantToNote', content, note);
     const relevanceRequestPayload = {
         model: "gpt-4-1106-preview",
         messages: [
@@ -548,12 +597,8 @@ async function isContentRelevantToNote(content, note, callback) {
     };
 
     makeAPIRequest(relevanceRequestPayload, (response) => {
-        // console.log('relevanceRequestPayload', response)
         const [relevance, explanation] = response.split(', ');
         const isRelevant = relevance.toLowerCase() === 'yes';
-        // const relevanceResponse = response
-        console.log("isRelevant", isRelevant)
-        // console.log(`relevance: ${relevanceResponse ? ` ${relevanceResponse}` : 'no answer'}`);
         callback({ isRelevant, explanation});;
     });
 }
@@ -568,7 +613,6 @@ async function makeAPIRequest(payload, callback) {
     })
     .then(response => response.json())
     .then(data => {
-        console.log(data, 'data');
         if (data  && data.choices && data.choices.length > 0) {
             const result = data.choices[0].message.content;
             callback(result); // Send back the generated text
@@ -578,6 +622,21 @@ async function makeAPIRequest(payload, callback) {
     })
     .catch(error => console.error('Error:', error));
 }
+
+function extractCodeBlock(response) {
+  // This regular expression matches all instances of content within triple backticks
+  const matches = response.match(/```(.*?)```/gs);
+  if (!matches) return '';
+
+  // Process each match to extract the content and wrap it in a code block
+  return matches.map(match => {
+    // Remove the backticks and trim whitespace
+    const code = match.replace(/```/g, '').trim();
+    // Return the code wrapped in a <pre><code> block for HTML rendering
+    return `<pre><code>${code}</code></pre>`;
+  }).join('\n'); // Join multiple code blocks with a newline if necessary
+}
+
 
 function attachResponse(relevanceResponse, feedbackList, index){
     const answer = relevanceResponse.isRelevant ? 'Yes' : 'No';
@@ -603,17 +662,19 @@ function attachResponse(relevanceResponse, feedbackList, index){
 document.addEventListener("DOMContentLoaded", function () {
     loadNotes();
     initializeComposition();
+    var inputElement = document.getElementById('noteInput');
+    if(inputElement) {
+        inputElement.focus();
+    }
     const noteInput = document.getElementById("noteInput");
     document.getElementById('analyzeButton').addEventListener("click", async function() {
         if (isLoading) return; // Prevent multiple clicks while loading
-        // console.log("this.classList",this.classList)
         chrome.runtime.sendMessage({ action: "getCurrentPageContent" }, (response) => {
             isLoading = true;
             document.getElementById('check-site-button').classList.add('loading');
             document.getElementById('brand-area').classList.add('loading');
             // const shortenedContent = response// Taking the first 1.5k characters
             summarizeContent(response, function (summary) {
-                // console.log("response", response)
                 retrieveNotes(notes => {
                     let feedbackList = [];
                     let completedNotes = 0;
@@ -624,14 +685,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                     notes.forEach((note, index) => {
                         isContentRelevantToNote(summary, note, function(relevanceResponse) {
-                            console.log('isContentRelevantToNote response isRelevant, explanation', relevanceResponse.isRelevant, relevanceResponse.explanation)
                             completedNotes++;
 
                             // Check if the relevanceResponse indicates a match
                             if (relevanceResponse.isRelevant) {
                                 attachResponse(relevanceResponse, feedbackList, index)
                             }
-                            // console.log('feedbackList', feedbackList, "completedNotes",completedNotes )
                             if (completedNotes === notes.length) {
                                 displayFeedback(feedbackList);
                             }
@@ -640,7 +699,6 @@ document.addEventListener("DOMContentLoaded", function () {
                             isLoading = false;
                         });
                     });
-                    console.log('feedbackList', feedbackList)
                 });
             });
         });
@@ -683,7 +741,6 @@ document.addEventListener("DOMContentLoaded", function () {
             const noteTextElement = e.target;
             // Here, you can update the note text wherever you're storing it
             // For this example, let's just log the updated text
-            // console.log(noteTextElement.innerText);
         }
     });
 
