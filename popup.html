@@ -40,24 +40,26 @@
         </header>
 
         <main class="main">
-            <div class="input-area">
-                <input type="text" id="noteInput" placeholder="Type something & press 'enter'..." class="text-input" />
+            <section id="notesList" class="note-items">
+                <!-- The notes will be dynamically loaded here -->
+            </section>
+            <div class="bottom-area">
+                <div class="input-area">
+                    <input type="text" id="noteInput" placeholder="Type something & press 'enter'..." class="text-input" />
+                </div>
+                <div style="visibility: hidden;" id="feedback"></div>
+                <section id="composition" class="composition">
+                    <div class="composition-content" id="composition-content">
+                        <!-- The compositions will be dynamically loaded here -->
+                    </div>
+                    <div class="composition-buttons" id="composition-buttons">
+                        <div class="composition-run"><i class="fa-solid fa-play"></i></div>
+                        <div class="composition-clear"><i class="fa-solid fa-x"></i></div>
+                        <div class="composition-copy"><i class="fa-regular fa-copy"></i></div>
+                    </div>
+                </section>
             </div>
         </main>
-        <div style="visibility: hidden;" id="feedback"></div>
-        <section id="composition" class="composition">
-            <div class="composition-content" id="composition-content">
-                <!-- The compositions will be dynamically loaded here -->
-            </div>
-            <div class="composition-buttons" id="composition-buttons">
-                <div class="composition-run"><i class="fa-solid fa-play"></i></div>
-                <div class="composition-clear"><i class="fa-solid fa-x"></i></div>
-                <div class="composition-copy"><i class="fa-regular fa-copy"></i></div>
-            </div>
-        </section>
-        <section id="notesList" class="note-items">
-            <!-- The notes will be dynamically loaded here -->
-        </section>
     </div>
 
     <script src="scripts.js"></script>

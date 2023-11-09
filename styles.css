@@ -101,7 +101,27 @@ h1{
     width: 100%;
     display: flex;
     justify-content: space-between;
-    padding-top: 2px;
+    padding-top: 5px;
+    height: auto;
+    bottom:10px;
+    top:20px;
+    flex-direction: column;
+    gap: 5px;
+
+}
+section{
+    overflow:auto;
+}
+
+.bottom-area{
+    background-color: #ffffff;
+    flex-grow: 1;
+    position:sticky;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-radius: 5px;
 }
 
 /* Input Area */
@@ -116,8 +136,6 @@ h1{
 .composition {
     background-color: #ffffff;
     padding: 5px;
-    margin: 10px;
-    position: relative;
     font-family: 'Inter';
     font-style: normal;
     font-weight: 400;
@@ -289,9 +307,8 @@ li {
     font-family: 'Poppins';
     display: flex;
     flex-direction: column;
-    margin-top: 10px;
+    margin-top: 5px;
     padding-bottom: 10px;
-    
 }
 
 /* Play button in the composition item section */
@@ -339,7 +356,7 @@ li {
 }
 
 /* Smaller Delete Button for Meta Item */
-.composition-button {
+.composition-delete-button {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -410,7 +427,7 @@ li {
 .note-item {
     display: flex;
     flex-direction: column;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     max-width: 450px;
 }
 

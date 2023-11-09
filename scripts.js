@@ -17,7 +17,7 @@ let selectedNotes = [];
 // }
 
 function storeNotes(notes, callback) {
-    chrome.storage.local.set({ userNotes: note }, function() {
+    chrome.storage.local.set({ userNotes: notes }, function() {
         if (chrome.runtime.lastError) {
             console.error('Error in chrome.storage.local.set:', chrome.runtime.lastError.message);
         } else {
@@ -210,7 +210,7 @@ function createPlayButton(note, index) {
         document.getElementById('brand-area').classList.add('loading');
         playButton.classList.add('loading');
         makeAPIRequest({
-            model: "gpt-3.5-turbo",
+            model: "gpt-4-1106-preview",
             messages: [
                 { role: "user", content: note }
             ]
@@ -457,7 +457,7 @@ runButton.addEventListener("click", function() {
 
     // Make API request
     makeAPIRequest({
-        model: "gpt-3.5-turbo",
+        model: "gpt-4-1106-preview",
         messages: [
             { role: "user", content: combinedText }
         ]
@@ -525,7 +525,7 @@ function createExpandTrayForElement(elementId, feedback) {
 // api request stuff
 async function summarizeContent(fulltext, callback) {
     const summaryRequestPayload = {
-        model: "gpt-3.5-turbo",
+        model: "gpt-4-1106-preview",
         messages: [
             { role: "user", content: `Summarize the following site content for me: ${fulltext.content}` }
         ]
@@ -540,7 +540,7 @@ async function summarizeContent(fulltext, callback) {
 async function isContentRelevantToNote(content, note, callback) {
     // console.log('isContentRelevantToNote', content, note);
     const relevanceRequestPayload = {
-        model: "gpt-3.5-turbo",
+        model: "gpt-4-1106-preview",
         messages: [
             // { role: "system", content: "You are a helpful assistant." },
             { role: "user", content: `Is this text "${content}" relevant to my note: "${note}"? answer in this format: <yes/no>, <explanation>` }

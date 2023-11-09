@@ -1,14 +1,14 @@
 {
   "manifest_version": 3,
   "name": "Notenit",
-  "version": "0.0.0.8",
+  "version": "0.0.0.9",
   "description": "AI-Powered Notepad for Browsing the Web",
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "images/todo16.png",
-      "48": "images/todo48.png",
-      "128": "images/todo128.png"
+      "16": "images/todo1.png",
+      "48": "images/todo1.png",
+      "128": "images/todo1.png"
     }
   },
   "background": {
