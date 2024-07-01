@@ -90,6 +90,8 @@ function createNoteElement(note, index) {
     const buttonsBox = document.createElement("div");
     buttonsBox.className = "list-button-box"
     buttonsBox.id = "list-button-box-" + index;
+    buttonsBox.style.position = 'sticky';
+    buttonsBox.style.top = '10px';
 
     // Create and append the check button to the buttonBox
     const checkButton = createCheckButton(index, note);
@@ -191,7 +193,7 @@ function createPlayButton(note, index) {
         document.getElementById('brand-area').classList.add('loading');
         playButton.classList.add('loading');
         makeAPIRequest({
-            model: "gpt-4-1106-preview",
+            model: "gpt-4o",
             messages: [
                 { role: "user", content: note }
             ]
@@ -272,16 +274,6 @@ function createExpandButton(index) {
     return expandButton;
 }
 
-// function expandNote(index, feedback) {
-//     const expandTray = document.createElement("div");
-//     expandTray.className = "expand-tray";
-//     expandTray.id = "expand-tray-" + index;
-//     expandTray.style.display = "none"; // Set initial display to none
-//     expandTray.style.boxShadow = "0px 4px 4px 2px rgba(0, 0, 0, 0.25) inset";
-//     expandTray.style.background = "#FFFF";
-//     expandTray.textContent = feedback; // Append the feedback
-//     return expandTray;
-// }
 
 function addToNotes(text) {
     saveNote(text, loadNotes)
@@ -320,49 +312,54 @@ function createCopyAndAddButtonsForExpandTray(text, parent, index) {
 
 // expand tray for compositions
 function createExpandTrayForElement(elementId, feedback) {
-    // Create the expand tray with the given feedback
-    // const expandTray = document.createElement("div");
-    // expandTray.className = "expand-tray";
-    // expandTray.id = "expand-tray-" + elementId;
-    // expandTray.style.display = "none"; // Set initial display to none
-    // expandTray.style.boxShadow = "0px 4px 4px 2px rgba(0, 0, 0, 0.25) inset";
-    // expandTray.style.background = "#FFFDFA";
-    // expandTray.textContent = feedback; // Append the feedback
-    // return expandTray; // Return the expand tray in case further manipulation is needed
     return expandNote(elementId, feedback)
 }
 
+function formatText(text) {
+    const formattedText = text
+        // Bold formatting: Matches `**text**` and replaces it with HTML `<b>text</b>`
+        .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+        // Numbered lists: Matches numbered list items (e.g., `1.`) and ensures proper spacing
+        .replace(/(\d+)\.\s*(.*?)(?=\d+\.\s|$)/gs, (match, p1, p2) => `<br>${p1}.&nbsp;${p2}<br>`)
+        // Headings: Matches `### Heading` and replaces it with an HTML heading element `<h3>Heading</h3>`
+        .replace(/###\s*(.*?)(?=\n|$)/g, '<h3>$1</h3>');
+    return formattedText;
+}
+
 function expandNote(index, feedback) {
-  const expandTray = document.createElement("div");
-  expandTray.className = "expand-tray";
-  expandTray.id = "expand-tray-" + index;
-  expandTray.style.display = "none"; // Set initial display to none
-  expandTray.style.boxShadow = "0px 4px 4px 2px rgba(0, 0, 0, 0.25) inset";
-  expandTray.style.background = "#FFFF";
+    const expandTray = document.createElement("div");
+    expandTray.className = "expand-tray";
+    expandTray.id = "expand-tray-" + index;
+    expandTray.style.display = "none"; // Set initial display to none
+    expandTray.style.boxShadow = "0px 4px 4px 2px rgba(0, 0, 0, 0.25) inset";
+    expandTray.style.background = "#FFFF";
 
-  // Split the feedback into parts based on the code block syntax
-  const parts = feedback.split(/(```.*?```)/gs);
+    // Split the feedback into parts based on the code block syntax
+    const parts = feedback.split(/(```.*?```)/gs);
 
-  // Loop through each part and append it appropriately
-  parts.forEach(part => {
-    if (part.startsWith('```') && part.endsWith('```')) {
-        // It's a code block, remove the backticks and create a preformatted element
-        const codeContent = part.replace(/```/g, '').trim();
-        const pre = document.createElement("pre");
-        const code = document.createElement("code");
-        // Add text content to the code element
-        code.textContent = codeContent;
-        pre.appendChild(code);
-        createCopyAndAddButtonsForExpandTray(codeContent.toString(), pre, index)
-        expandTray.appendChild(pre);
-    } else {
-      // It's normal text, create a text node and append it
-      expandTray.appendChild(document.createTextNode(part));
-    }
-  });
-    createCopyAndAddButtonsForExpandTray(feedback, expandTray, index)
-  return expandTray;
-};
+    // Loop through each part and append it appropriately
+    parts.forEach(part => {
+        if (part.startsWith('```') && part.endsWith('```')) {
+            // It's a code block, remove the backticks and create a preformatted element
+            const codeContent = part.replace(/```/g, '').trim();
+            const pre = document.createElement("pre");
+            const code = document.createElement("code");
+            // Add text content to the code element
+            code.textContent = codeContent;
+            pre.appendChild(code);
+            createCopyAndAddButtonsForExpandTray(codeContent.toString(), pre, index)
+            expandTray.appendChild(pre);
+        } else {
+            // Format the normal text
+            const formattedText = formatText(part);
+            const div = document.createElement("div");
+            div.innerHTML = formattedText;
+            expandTray.appendChild(div);
+        }
+    });
+    createCopyAndAddButtonsForExpandTray(feedback, expandTray, index);
+    return expandTray;
+}
 
 
 function toggleExpandTray(identifier) {
@@ -405,14 +402,7 @@ function displayFeedback(feedbackList) {
         feedbackDiv.appendChild(p);
     }
 }
-// // composition item functionality
-// function storeSelectedNotes() {
-//     chrome.storage.sync.set({ composition: selectedNotes }, function() {
-//         if (chrome.runtime.lastError) {
-//             console.error('Error in chrome.storage.sync.set:', chrome.runtime.lastError.message);
-//         }
-//     });
-// }
+
 
 // Composition functionality
 function storeSelectedNotes() {
@@ -423,12 +413,6 @@ function storeSelectedNotes() {
     });
 }
 
-// function retrieveSelectedNotes(callback) {
-//     chrome.storage.sync.get("composition", function(data) {
-//         callback(data.composition || []);
-//     });
-// }
-
 
 function retrieveSelectedNotes(callback) {
     chrome.storage.local.get("composition", function(data) {
@@ -436,23 +420,39 @@ function retrieveSelectedNotes(callback) {
     });
 }
 
+function clearCurrentTray(identifier) {
+    const expandTray = document.getElementById("expand-tray-" + identifier);
+    if (expandTray) {
+        expandTray.innerHTML = ''; // Remove content inside the tray
+        expandTray.remove()
+    }
+    const expandButton = document.getElementById("expand-button-" + identifier);
+    if (expandButton) {
+        expandButton.remove(); // Remove expand button
+    }
+}
+
+
+
 function updateComposition() {
+    attachTooltips(); // Initialize tooltips when the document is ready
     const compositionContent = document.getElementById("composition-content");
     compositionContent.innerHTML = ""; // Clear previous content
     selectedNotes.forEach((noteText, index) => {
-        const span = document.createElement("span");
-        span.className = "composition-span";
-        span.textContent = noteText.length > 15 ? noteText.substring(0, 15) + "..." : noteText;
+        const compositionButtons = document.createElement("span");
+        compositionButtons.className = "composition-span";
+        compositionButtons.textContent = noteText.length > 15 ? noteText.substring(0, 15) + "..." : noteText;
 
         const deleteButton = document.createElement("div");
         deleteButton.className = "composition-delete-button";
         const xText = document.createElement("i");
         xText.className = "fa-solid fa-x fa-xs";
         deleteButton.appendChild(xText);
+       
         deleteButton.addEventListener("click", () => deleteComposition(noteText)); // We pass noteText instead of index
-        span.appendChild(deleteButton);
+        compositionButtons.appendChild(deleteButton);
 
-        compositionContent.appendChild(span);
+        compositionContent.appendChild(compositionButtons);
     });
     // Add the check here:
     const composition = document.getElementById("composition");
@@ -506,11 +506,166 @@ copyButton.addEventListener("click", function() {
     });
 });
 
+
+// Run button: Combine texts and send to API
+const askButton = document.querySelector(".composition-question");
+askButton.addEventListener("click", function() {
+    const combinedText = selectedNotes.join(";\n ");
+
+    const identifier = "composition"; // Identifier for the tray
+
+    // Clear existing expand tray
+    clearCurrentTray(identifier);
+
+    // Start loading animation
+    isLoading = true;
+    document.getElementById('brand-area').classList.add('loading');
+    document.getElementById('check-site-button').classList.add('loading');
+    askButton.classList.add('loading');
+    const questionPrompt = 'Your job is to take these text snippets/ideas/notes and weave them together to generate 3 insightful, provocative questions that would engage the user, further their understanding of interesting intersections of their thoughts, or push them into deep reflection. We must ask, given the text, What further questions should I be asking? What else is worth exploring/thinking about? What are interesting meta patterns in our discussion so far?';
+    // Make API request
+    makeAPIRequest({
+        model: "gpt-4o",
+        messages: [
+            { role: "system", content: questionPrompt },
+            { role: "user", content: combinedText }
+        ]
+    }, function(response) {
+        // Stop loading animation
+        askButton.classList.remove('loading');
+        document.getElementById('brand-area').classList.remove('loading');
+        isLoading = false;
+
+        // Display the response in an expand tray beneath the composition item
+        const feedback = response;
+        const expandTray = createExpandTrayForElement("composition", feedback);
+        const parent = document.getElementById('composition')
+        parent.appendChild(expandTray);
+        // If no existing expand button, create one
+        const existingExpandButton = document.getElementById("expand-button-composition");
+        if (!existingExpandButton) {
+            const expandButton = createExpandButton("composition");
+            expandButton.style.display = "flex";
+            expandButton.style.width = '30px';
+            expandButton.style.height = '30px';
+            const buttonBox = document.getElementById("composition-buttons");
+            buttonBox.appendChild(expandButton);
+        }
+        document.getElementById('brand-area').classList.remove('loading');
+        document.getElementById('check-site-button').classList.remove('loading');
+        askButton.classList.remove('loading');
+        isLoading = false;
+        // Automatically open the tray
+        toggleExpandTray("composition");
+    });
+});
+
+// Create button for Overlapping Ideas
+const overlapButton = document.querySelector(".composition-overlap");
+overlapButton.addEventListener("click", function () {
+    const texts = selectedNotes.concat(noteInput.value.split(';'));
+
+    const identifier = "composition"; // Identifier for the tray
+
+    // Clear existing expand tray
+    clearCurrentTray(identifier);
+    
+    // Start loading animation
+    isLoading = true;
+    document.getElementById('brand-area').classList.add('loading');
+    document.getElementById('check-site-button').classList.add('loading');
+    overlapButton.classList.add('loading');
+
+    // Make API request to overlapping_ideas endpoint
+    makeOverlapAPIRequest(texts, function (response) {
+        // Stop loading animation
+        overlapButton.classList.remove('loading');
+        document.getElementById('brand-area').classList.remove('loading');
+        isLoading = false;
+
+        // Display the response in an expand tray beneath the composition item
+        const feedback = response;
+        const expandTray = createExpandTrayForElement("composition", feedback);
+        const parent = document.getElementById('composition');
+        parent.appendChild(expandTray);
+
+        // If no existing expand button, create one
+        const existingExpandButton = document.getElementById("expand-button-composition");
+        if (!existingExpandButton) {
+            const expandButton = createExpandButton("composition");
+            expandButton.style.display = "flex";
+            expandButton.style.width = '30px';
+            expandButton.style.height = '30px';
+            const buttonBox = document.getElementById("composition-buttons");
+            buttonBox.appendChild(expandButton);
+        }
+        document.getElementById('brand-area').classList.remove('loading');
+        document.getElementById('check-site-button').classList.remove('loading');
+        overlapButton.classList.remove('loading');
+        isLoading = false;
+        // Automatically open the tray
+        toggleExpandTray("composition");
+    });
+});
+
+// Create button for Unique Ideas
+const uniqueButton = document.querySelector(".composition-unique");
+uniqueButton.addEventListener("click", function () {
+    const texts = selectedNotes.concat(noteInput.value.split(';'));
+
+    const identifier = "composition"; // Identifier for the tray
+
+    // Clear existing expand tray
+    clearCurrentTray(identifier);
+    
+    // Start loading animation
+    isLoading = true;
+    document.getElementById('brand-area').classList.add('loading');
+    document.getElementById('check-site-button').classList.add('loading');
+    uniqueButton.classList.add('loading');
+
+    // Make API request to unique_ideas endpoint
+    makeUniqueAPIRequest(texts, function (response) {
+        // Stop loading animation
+        uniqueButton.classList.remove('loading');
+        document.getElementById('brand-area').classList.remove('loading');
+        isLoading = false;
+
+        // Display the response in an expand tray beneath the composition item
+        const feedback = response.map(item => `Unique Ideas in "${item.text}":\n${item.unique_segments.join('\n')}`).join('\n\n');
+        const expandTray = createExpandTrayForElement("composition", feedback);
+        const parent = document.getElementById('composition');
+        parent.appendChild(expandTray);
+
+        // If no existing expand button, create one
+        const existingExpandButton = document.getElementById("expand-button-composition");
+        if (!existingExpandButton) {
+            const expandButton = createExpandButton("composition");
+            expandButton.style.display = "flex";
+            expandButton.style.width = '30px';
+            expandButton.style.height = '30px';
+            const buttonBox = document.getElementById("composition-buttons");
+            buttonBox.appendChild(expandButton);
+        }
+        document.getElementById('brand-area').classList.remove('loading');
+        document.getElementById('check-site-button').classList.remove('loading');
+        uniqueButton.classList.remove('loading');
+        isLoading = false;
+        // Automatically open the tray
+        toggleExpandTray("composition");
+    });
+});
+
 // Run button: Combine texts and send to API
 const runButton = document.querySelector(".composition-run");
 runButton.addEventListener("click", function() {
     const combinedText = selectedNotes.join(";\n ");
 
+    const identifier = "composition"; // Identifier for the tray
+
+    // Clear existing expand tray
+    clearCurrentTray(identifier);
+    
     // Start loading animation
     isLoading = true;
     document.getElementById('brand-area').classList.add('loading');
@@ -519,7 +674,7 @@ runButton.addEventListener("click", function() {
 
     // Make API request
     makeAPIRequest({
-        model: "gpt-4-1106-preview",
+        model: "gpt-4o",
         messages: [
             { role: "user", content: combinedText }
         ]
@@ -576,7 +731,7 @@ function deleteComposition(noteText) {
 // api request stuff
 async function summarizeContent(fulltext, callback) {
     const summaryRequestPayload = {
-        model: "gpt-4-1106-preview",
+        model: "gpt-4o",
         messages: [
             { role: "user", content: `Summarize the following site content for me: ${fulltext.content}` }
         ]
@@ -589,7 +744,7 @@ async function summarizeContent(fulltext, callback) {
 
 async function isContentRelevantToNote(content, note, callback) {
     const relevanceRequestPayload = {
-        model: "gpt-4-1106-preview",
+        model: "gpt-4o",
         messages: [
             // { role: "system", content: "You are a helpful assistant." },
             { role: "user", content: `Is this text "${content}" relevant to my note: "${note}"? answer in this format: <yes/no>, <explanation>` }
@@ -602,6 +757,61 @@ async function isContentRelevantToNote(content, note, callback) {
         callback({ isRelevant, explanation});;
     });
 }
+const gpt = 'promptly'
+
+function stopLoading() {
+    isLoading = false;
+    document.getElementById('brand-area').classList.remove('loading');
+    document.getElementById('check-site-button').classList.remove('loading');
+    const loadingButtons = document.querySelectorAll('.loading');
+    loadingButtons.forEach(button => button.classList.remove('loading'));
+}
+
+async function makeOverlapAPIRequest(texts, callback) {
+    fetch('https://emojipt-jawaunbrown.replit.app/overlapping_ideas', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ texts: texts })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data && data.overlapping_ideas) {
+            callback(data.overlapping_ideas); // Send back the overlapping ideas
+        } else {
+            console.error('Unexpected API response:', data);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error)
+        stopLoading();
+    });
+}
+
+
+async function makeUniqueAPIRequest(texts, callback) {
+    fetch('https://emojipt-jawaunbrown.replit.app/unique_ideas', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ texts: texts })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data && data.unique_ideas) {
+            callback(data.unique_ideas); // Send back the unique ideas
+        } else {
+            console.error('Unexpected API response:', data);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error)
+        stopLoading();
+    });
+}
+
 
 async function makeAPIRequest(payload, callback) {
     fetch('https://emojipt-jawaunbrown.replit.app/promptly', {
@@ -620,8 +830,10 @@ async function makeAPIRequest(payload, callback) {
             console.error('Unexpected API response:', data);
         }
     })
-    .catch(error => console.error('Error:', error));
-}
+    .catch(error => {
+        console.error('Error:', error)
+        stopLoading();
+    });}
 
 function extractCodeBlock(response) {
   // This regular expression matches all instances of content within triple backticks
@@ -657,6 +869,55 @@ function attachResponse(relevanceResponse, feedbackList, index){
 
     feedbackList.push(fullResponse);
 }
+
+// Tooltip functionality for buttons
+function attachTooltips() {
+    const tooltipsInfo = {
+        'delete-button': 'Delete Note',
+        'copy-button': 'Copy Text',
+        'play-button': 'Ask AI',
+        'check-button': 'Select Note',
+        'expand-button': 'Expand Details',
+        'composition-copy': 'Copy All Selected',
+        'composition-run': 'Ask AI',
+        'add-button': 'Add to Notes',
+        'check-site-button': 'Analyze Site\'s Relevance To Notes',
+        'check-button selected': 'Deselect Note',
+        'composition-clear': 'Clear Selection',
+        'composition-question': 'Generate Questions Based on Selection',
+        'composition-unique': 'Get Unique Ideas in each',
+        'composition-overlap': 'Get Overlapping Ideas in each'
+    };
+
+    document.body.addEventListener('mouseover', function(event) {
+        // Find the closest button parent or the target if it's directly a button
+        const targetButton = event.target.closest('div');
+        if (targetButton && tooltipsInfo[targetButton.className]) {
+            // Create and style tooltip container
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.textContent = tooltipsInfo[targetButton.className];
+            tooltip.style.position = 'absolute';
+            tooltip.style.backgroundColor = 'black';
+            tooltip.style.color = 'white';
+            tooltip.style.padding = '5px 10px';
+            tooltip.style.borderRadius = '4px';
+            tooltip.style.pointerEvents = 'none'; // Prevent the tooltip from blocking clicks
+            tooltip.style.zIndex = '1000';
+            tooltip.style.top = `${event.pageY - 30}px`;
+            tooltip.style.left = `${event.pageX - 40}px`;
+
+            // Append tooltip to the body
+            document.body.appendChild(tooltip);
+
+            // Remove tooltip on mouseout
+            targetButton.addEventListener('mouseout', () => {
+                tooltip.remove();
+            }, { once: true });
+        }
+    });
+}
+
 
 
 document.addEventListener("DOMContentLoaded", function () {

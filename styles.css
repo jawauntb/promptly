@@ -95,7 +95,7 @@ h1{
     height: 40px;
     width:40px;
     margin-right: 15px;
-    background-image: url('/images/todo3.png');
+    background-image: url('/images/notenitnewlogo62524559pm.png');
     background-size: cover;
     animation: spin .5s linear infinite;
     transform: translate(-50%, -50%);
@@ -165,6 +165,7 @@ section{
     justify-content: space-between;
     flex-grow: 1;
     gap: 10px;
+    padding-bottom: 20px;
 }
 
 .composition-content{
@@ -327,6 +328,57 @@ li {
     margin-top: 5px;
     padding-bottom: 10px;
 }
+/* Overlap button in the composition item section */
+.composition-overlap {
+    display: flex;
+    align-items: center; /* Vertically aligns the button */
+    justify-content: center;
+    width: 30px; /* Adjust the width as needed */
+    height: 30px; /* Adjust the height as needed */
+    background-color: #3498db; /* Light blue color */
+    border-radius: 50%; /* Makes it a circle */
+    cursor: pointer;
+    color: white;
+}
+
+.composition-overlap:hover {
+    filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.25));
+    transform: scale(1.1);
+}
+
+.composition-overlap.loading {
+    animation: spin 2s linear infinite;
+    transform: translate(-50%, -50%);
+}
+
+/* Unique button in the composition item section */
+.composition-unique {
+    display: flex;
+    align-items: center; /* Vertically aligns the button */
+    justify-content: center;
+    width: 30px; /* Adjust the width as needed */
+    height: 30px; /* Adjust the height as needed */
+    background-color: #e67e22; /* Orange color */
+    border-radius: 50%; /* Makes it a circle */
+    cursor: pointer;
+    color: white;
+}
+
+.composition-unique:hover {
+    filter: drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.25));
+    transform: scale(1.1);
+}
+
+.composition-unique.loading {
+    animation: spin 2s linear infinite;
+    transform: translate(-50%, -50%);
+}
+
+/* Animation for loading state */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
 /* Play button in the composition item section */
 .composition-run {
@@ -336,6 +388,17 @@ li {
     width: 30px; /* Adjust the width as needed */
     height: 30px; /* Adjust the height as needed */
     background-color: #0b2261;
+    border-radius: 50%; /* Makes it a circle */
+    cursor: pointer;
+    color: white;
+}
+.composition-question{
+      display: flex;
+    align-items: center; /* Vertically aligns the copy button with the middle of the check site button */
+    justify-content: center;
+    width: 30px; /* Adjust the width as needed */
+    height: 30px; /* Adjust the height as needed */
+    background-color: #39f414;
     border-radius: 50%; /* Makes it a circle */
     cursor: pointer;
     color: white;
@@ -418,6 +481,11 @@ li {
     transform: translate(-50%, -50%);
 }
 
+.composition-question.loading  {
+    animation: spin 2s linear infinite;
+    transform: translate(-50%, -50%);
+}
+
 .play-button.loading {
     animation: spin 2s linear infinite;
     transform: translate(-50%, -50%);
@@ -458,7 +526,10 @@ li {
 
 /* Goal Item Content (text and delete button) */
 .note-item-content {
+    position: relative;
     display: flex;
+    overflow: auto;
+    max-height: 200px;
     justify-content: space-between; /* Places text on the left and delete button on the right */
     align-items: center;
     padding: 10px;
@@ -497,6 +568,7 @@ li {
 .text-container {
     max-width: 340px;
     width: 340px;
+    max-height: 200px;
 }
 
 /* list Button */
