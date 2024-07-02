@@ -560,6 +560,7 @@ askButton.addEventListener("click", function() {
     });
 });
 
+
 async function makeOverlapAPIRequest(texts, callback) {
     fetch('https://emojipt-jawaunbrown.replit.app/find_intersection_and_difference', {
         method: 'POST',
@@ -571,13 +572,27 @@ async function makeOverlapAPIRequest(texts, callback) {
     .then(response => response.json())
     .then(data => {
         if (data && data.intersection) {
-            callback(data); // Send back the overlapping ideas
+            const intersection = data.intersection;
+            const differences = data.difference;
+
+            // Convert differences object into a formatted string
+            let differencesText = "**Note Differences**: ";
+            Object.keys(differences).forEach((key, index) => {
+                differencesText += `Text ${parseInt(key) + 1}: [${differences[key].join(", ")}]`;
+                if (index < Object.keys(differences).length - 1) {
+                    differencesText += "; ";
+                }
+            });
+
+            // Prepare the complete response text
+            const overlapResponse = `**Note Intersections**: ${intersection}. ${differencesText}.`;
+            callback(overlapResponse); // Send back the overlapping ideas
         } else {
             console.error('Unexpected API response:', data);
         }
     })
     .catch(error => {
-        console.error('Error:', error)
+        console.error('Error:', error);
         stopLoading();
     });
 }

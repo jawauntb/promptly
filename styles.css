@@ -354,7 +354,7 @@ li {
 }
 
 .composition-overlap.loading {
-    animation: spin 2s linear infinite;
+    animation: spin 1s linear infinite;
     transform: translate(-50%, -50%);
 }
 
@@ -377,7 +377,7 @@ li {
 }
 
 .composition-unique.loading {
-    animation: spin 2s linear infinite;
+    animation: spin 1s linear infinite;
     transform: translate(-50%, -50%);
 }
 
@@ -484,17 +484,17 @@ li {
 }
 
 .composition-run.loading  {
-    animation: spin 2s linear infinite;
+    animation: spin 1s linear infinite;
     transform: translate(-50%, -50%);
 }
 
 .composition-question.loading  {
-    animation: spin 2s linear infinite;
+    animation: spin 1s linear infinite;
     transform: translate(-50%, -50%);
 }
 
 .play-button.loading {
-    animation: spin 2s linear infinite;
+    animation: spin 1s linear infinite;
     transform: translate(-50%, -50%);
 }
 
