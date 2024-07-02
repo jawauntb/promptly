@@ -585,8 +585,14 @@ async function makeOverlapAPIRequest(texts, callback) {
 // Create button for Overlapping Ideas
 const overlapButton = document.querySelector(".composition-overlap");
 overlapButton.addEventListener("click", function () {
-    const texts = selectedNotes.concat(noteInput.value.split(';'));
+    const rawTexts = selectedNotes.concat(noteInput.value.split(';'));
+    const texts = rawTexts.filter(text => text.trim().length > 0); // Filter out empty or whitespace-only strings
 
+    if (texts.length === 0) {
+        console.error("No valid texts to process");
+        // Update the UI to reflect that no valid input is available
+        return;
+    }
     const identifier = "composition"; // Identifier for the tray
 
     // Clear existing expand tray
@@ -597,7 +603,7 @@ overlapButton.addEventListener("click", function () {
     document.getElementById('brand-area').classList.add('loading');
     document.getElementById('check-site-button').classList.add('loading');
     overlapButton.classList.add('loading');
-
+    
     // Make API request to overlapping_ideas endpoint
     makeOverlapAPIRequest(texts, function (response) {
         // Stop loading animation
