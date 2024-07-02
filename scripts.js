@@ -560,6 +560,28 @@ askButton.addEventListener("click", function() {
     });
 });
 
+async function makeOverlapAPIRequest(texts, callback) {
+    fetch('https://emojipt-jawaunbrown.replit.app/find_intersection_and_difference', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ texts: texts })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data && data.intersection) {
+            callback(data); // Send back the overlapping ideas
+        } else {
+            console.error('Unexpected API response:', data);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error)
+        stopLoading();
+    });
+}
+
 // Create button for Overlapping Ideas
 const overlapButton = document.querySelector(".composition-overlap");
 overlapButton.addEventListener("click", function () {
@@ -608,53 +630,6 @@ overlapButton.addEventListener("click", function () {
     });
 });
 
-// Create button for Unique Ideas
-const uniqueButton = document.querySelector(".composition-unique");
-uniqueButton.addEventListener("click", function () {
-    const texts = selectedNotes.concat(noteInput.value.split(';'));
-
-    const identifier = "composition"; // Identifier for the tray
-
-    // Clear existing expand tray
-    clearCurrentTray(identifier);
-    
-    // Start loading animation
-    isLoading = true;
-    document.getElementById('brand-area').classList.add('loading');
-    document.getElementById('check-site-button').classList.add('loading');
-    uniqueButton.classList.add('loading');
-
-    // Make API request to unique_ideas endpoint
-    makeUniqueAPIRequest(texts, function (response) {
-        // Stop loading animation
-        uniqueButton.classList.remove('loading');
-        document.getElementById('brand-area').classList.remove('loading');
-        isLoading = false;
-
-        // Display the response in an expand tray beneath the composition item
-        const feedback = response.map(item => `Unique Ideas in "${item.text}":\n${item.unique_segments.join('\n')}`).join('\n\n');
-        const expandTray = createExpandTrayForElement("composition", feedback);
-        const parent = document.getElementById('composition');
-        parent.appendChild(expandTray);
-
-        // If no existing expand button, create one
-        const existingExpandButton = document.getElementById("expand-button-composition");
-        if (!existingExpandButton) {
-            const expandButton = createExpandButton("composition");
-            expandButton.style.display = "flex";
-            expandButton.style.width = '30px';
-            expandButton.style.height = '30px';
-            const buttonBox = document.getElementById("composition-buttons");
-            buttonBox.appendChild(expandButton);
-        }
-        document.getElementById('brand-area').classList.remove('loading');
-        document.getElementById('check-site-button').classList.remove('loading');
-        uniqueButton.classList.remove('loading');
-        isLoading = false;
-        // Automatically open the tray
-        toggleExpandTray("composition");
-    });
-});
 
 // Run button: Combine texts and send to API
 const runButton = document.querySelector(".composition-run");
@@ -766,52 +741,6 @@ function stopLoading() {
     const loadingButtons = document.querySelectorAll('.loading');
     loadingButtons.forEach(button => button.classList.remove('loading'));
 }
-
-async function makeOverlapAPIRequest(texts, callback) {
-    fetch('https://emojipt-jawaunbrown.replit.app/overlapping_ideas', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ texts: texts })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data && data.overlapping_ideas) {
-            callback(data.overlapping_ideas); // Send back the overlapping ideas
-        } else {
-            console.error('Unexpected API response:', data);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error)
-        stopLoading();
-    });
-}
-
-
-async function makeUniqueAPIRequest(texts, callback) {
-    fetch('https://emojipt-jawaunbrown.replit.app/unique_ideas', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ texts: texts })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data && data.unique_ideas) {
-            callback(data.unique_ideas); // Send back the unique ideas
-        } else {
-            console.error('Unexpected API response:', data);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error)
-        stopLoading();
-    });
-}
-
 
 async function makeAPIRequest(payload, callback) {
     fetch('https://emojipt-jawaunbrown.replit.app/promptly', {
