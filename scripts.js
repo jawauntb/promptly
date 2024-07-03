@@ -58,6 +58,16 @@ function deleteNote(index) {
     });
 }
 
+function moveNoteToNewPosition(draggedNoteIndex, targetNoteIndex) {
+    retrieveNotes(notes => {
+        // Remove the dragged note and insert it at the new position
+        const [draggedNote] = notes.splice(draggedNoteIndex, 1);
+        notes.splice(targetNoteIndex, 0, draggedNote);
+        // Store the updated notes
+        storeNotes(notes, loadNotes);
+    });
+}
+
 function getDragAfterElement(container, y) {
     const draggableElements = [...container.querySelectorAll('.note-item:not(.dragging)')];
 
