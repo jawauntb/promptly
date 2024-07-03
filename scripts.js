@@ -63,7 +63,32 @@ function createNoteElement(note, index) {
     const div = document.createElement("div");
     div.className = "note-item";
     div.id = "note-item-" + index; // Assign a unique id to each note item
+    // START adding D&D---
+    div.draggable = true; // Make the note draggable
 
+    // Handle drag start event
+    div.addEventListener('dragstart', function(event) {
+        event.dataTransfer.setData('text/plain', index); // Store the index of the dragged note
+        div.classList.add('dragging');
+    });
+
+    // Handle drag end event
+    div.addEventListener('dragend', function(event) {
+        div.classList.remove('dragging');
+    });
+
+    // Handle drag over event
+    div.addEventListener('dragover', function(event) {
+        event.preventDefault(); // Allow dropping
+        const draggingNote = document.querySelector('.dragging');
+        const afterElement = getDragAfterElement(notesList, event.clientY);
+        if (afterElement == null) {
+            notesList.appendChild(draggingNote);
+        } else {
+            notesList.insertBefore(draggingNote, afterElement);
+        }
+    });
+    // END adding D&D---
     // Create another div to hold the note text and delete button
     const noteItemContent = document.createElement("div");
     noteItemContent.className = "note-item-content";
