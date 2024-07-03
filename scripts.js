@@ -81,12 +81,10 @@ function getDragAfterElement(container, y) {
         }
     }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
-
 function createNoteElement(note, index) {
     const div = document.createElement("div");
     div.className = "note-item";
     div.id = "note-item-" + index; // Assign a unique id to each note item
-    // START adding D&D---
     div.draggable = true; // Make the note draggable
 
     // Handle drag start event
@@ -114,7 +112,6 @@ function createNoteElement(note, index) {
             notesList.insertBefore(draggingNote, afterElement);
         }
     });
-    // END adding D&D---
 
     // Create another div to hold the note text and delete button
     const noteItemContent = document.createElement("div");
@@ -129,7 +126,7 @@ function createNoteElement(note, index) {
     const noteText = document.createElement("span");
     noteText.className = "list-text";
     noteText.id = "list-text-" + index;
-    noteText.textContent = note.text;
+    noteText.textContent = note.text; // Ensure the text content is set correctly
     noteText.setAttribute('contenteditable', 'true');
 
     // Add event listener to persist changes
