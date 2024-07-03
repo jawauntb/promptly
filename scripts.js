@@ -576,16 +576,16 @@ async function makeOverlapAPIRequest(texts, callback) {
             const differences = data.difference;
 
             // Convert differences object into a formatted string
-            let differencesText = "**Note Differences**: ";
+            let differencesText = "";
             Object.keys(differences).forEach((key, index) => {
-                differencesText += `Text ${parseInt(key) + 1}: [${differences[key].join(", ")}]`;
+                differencesText += `\n${parseInt(key) + 1}. [${differences[key].join(", ")}]`;
                 if (index < Object.keys(differences).length - 1) {
                     differencesText += "; ";
                 }
             });
 
             // Prepare the complete response text
-            const overlapResponse = `**Note Intersections**: ${intersection}. ${differencesText}.`;
+            const overlapResponse = `###Note Intersections:\n ${intersection} \n ###Note Differences:\n ${differencesText}.`;
             callback(overlapResponse); // Send back the overlapping ideas
         } else {
             console.error('Unexpected API response:', data);
