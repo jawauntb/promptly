@@ -335,7 +335,7 @@ li {
     justify-content: center;
     width: 32px; /* Adjust the width as needed */
     height: 32px; /* Adjust the height as needed */
-    background-color: white; /* cream */
+    background-color: rgb(255, 253, 247); /* cream */
     border-radius: 50%; /* Makes it a circle */
     cursor: pointer;
     color: white;
@@ -710,8 +710,8 @@ li {
     display: flex;
     align-items: center; /* Vertically aligns the delete button with the middle of the check site button */
     justify-content: center;
-    width: 20px; /* Adjust the width as needed */
-    height: 20px; /* Adjust the height as needed */
+    width: 32px; /* Adjust the width as needed */
+    height: 32px; /* Adjust the height as needed */
     background-color: #212925;
     border-radius: 50%; /* Makes it a circle */
     cursor: pointer;
