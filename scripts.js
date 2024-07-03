@@ -83,7 +83,6 @@ function getDragAfterElement(container, y) {
 }
 
 function createNoteElement(note, index) {
-    // Create a div as the container for each note item
     const div = document.createElement("div");
     div.className = "note-item";
     div.id = "note-item-" + index; // Assign a unique id to each note item
@@ -99,6 +98,9 @@ function createNoteElement(note, index) {
     // Handle drag end event
     div.addEventListener('dragend', function(event) {
         div.classList.remove('dragging');
+        const draggingNoteIndex = parseInt(event.dataTransfer.getData('text/plain'), 10);
+        const targetNoteIndex = [...notesList.children].indexOf(div);
+        moveNoteToNewPosition(draggingNoteIndex, targetNoteIndex);
     });
 
     // Handle drag over event
@@ -113,10 +115,11 @@ function createNoteElement(note, index) {
         }
     });
     // END adding D&D---
+
     // Create another div to hold the note text and delete button
     const noteItemContent = document.createElement("div");
     noteItemContent.className = "note-item-content";
-    noteItemContent.id = "note-item-content" + index
+    noteItemContent.id = "note-item-content-" + index;
 
     // Create and append the note text span to noteItemContent
     const noteTextContainer = document.createElement("div");
@@ -126,7 +129,7 @@ function createNoteElement(note, index) {
     const noteText = document.createElement("span");
     noteText.className = "list-text";
     noteText.id = "list-text-" + index;
-    noteText.textContent = note;
+    noteText.textContent = note.text;
     noteText.setAttribute('contenteditable', 'true');
 
     // Add event listener to persist changes
@@ -138,7 +141,7 @@ function createNoteElement(note, index) {
     noteItemContent.appendChild(noteTextContainer);
 
     const buttonsBox = document.createElement("div");
-    buttonsBox.className = "list-button-box"
+    buttonsBox.className = "list-button-box";
     buttonsBox.id = "list-button-box-" + index;
     buttonsBox.style.position = 'sticky';
     buttonsBox.style.top = '10px';
@@ -148,11 +151,11 @@ function createNoteElement(note, index) {
     buttonsBox.appendChild(checkButton);
 
     // Create and append the play button to the buttonBox
-    const playButton = createPlayButton(note, index);
+    const playButton = createPlayButton(note.text, index);
     buttonsBox.appendChild(playButton);
 
     // Create and append the copy button to the buttonBox
-    const copyButton = createCopyButton(note, index);
+    const copyButton = createCopyButton(note.text, index);
     buttonsBox.appendChild(copyButton);
 
     const deleteButton = createDeleteButton(index);
