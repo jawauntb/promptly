@@ -35,7 +35,7 @@ function retrieveNotes(callback) {
 function loadNotes() {
     retrieveNotes(notes => {
         notesList.innerHTML = "";
-        notes.reverse();
+        // notes.reverse();
         notes.forEach((note, index) => {
             const li = createNoteElement(note, index);
             notesList.appendChild(li);
@@ -57,6 +57,68 @@ function deleteNote(index) {
         loadNotes();
     });
 }
+function handleDragStart(e) {
+    e.dataTransfer.setData('text/plain', e.target.id);
+    setTimeout(() => {
+        e.target.classList.add('dragging');
+    }, 0);
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    const placeholder = document.querySelector('.placeholder');
+    const draggingElement = document.querySelector('.dragging');
+    const afterElement = getDragAfterElement(notesList, e.clientY);
+
+    if (!placeholder) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'placeholder';
+        notesList.insertBefore(placeholder, draggingElement.nextSibling);
+    }
+    
+    if (afterElement == null) {
+        notesList.appendChild(draggingElement);
+    } else {
+        notesList.insertBefore(draggingElement, afterElement);
+    }
+}
+
+function handleDragEnd(e) {
+    e.target.classList.remove('dragging');
+    const placeholder = document.querySelector('.placeholder');
+    if (placeholder) {
+        placeholder.remove();
+    }
+    updateNoteOrder();
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    const id = e.dataTransfer.getData('text/plain');
+    const draggable = document.getElementById(id);
+    draggable.classList.remove('dragging');
+}
+
+function updateNoteOrder() {
+    const noteItems = [...notesList.children];
+    const newNotesOrder = noteItems.map((item, index) => {
+        return item.querySelector('.list-text').textContent;
+    });
+    storeNotes(newNotesOrder, loadNotes);
+}
+
+function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('.note-item:not(.dragging)')];
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
 
 function moveNoteToNewPosition(draggedNoteIndex, targetNoteIndex) {
     retrieveNotes(notes => {
@@ -68,57 +130,20 @@ function moveNoteToNewPosition(draggedNoteIndex, targetNoteIndex) {
     });
 }
 
-function getDragAfterElement(container, y) {
-    const draggableElements = [...container.querySelectorAll('.note-item:not(.dragging)')];
-
-    return draggableElements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height / 2;
-        if (offset < 0 && offset > closest.offset) {
-            return { offset: offset, element: child };
-        } else {
-            return closest;
-        }
-    }, { offset: Number.NEGATIVE_INFINITY }).element;
-}
 function createNoteElement(note, index) {
     const div = document.createElement("div");
     div.className = "note-item";
-    div.id = "note-item-" + index; // Assign a unique id to each note item
-    div.draggable = true; // Make the note draggable
+    div.id = "note-item-" + index;
+    div.draggable = true;
 
-    // Handle drag start event
-    div.addEventListener('dragstart', function(event) {
-        event.dataTransfer.setData('text/plain', index); // Store the index of the dragged note
-        div.classList.add('dragging');
-    });
+    div.addEventListener('dragstart', handleDragStart);
+    div.addEventListener('dragend', handleDragEnd);
+    div.addEventListener('dragover', handleDragOver);
 
-    // Handle drag end event
-    div.addEventListener('dragend', function(event) {
-        div.classList.remove('dragging');
-        const draggingNoteIndex = parseInt(event.dataTransfer.getData('text/plain'), 10);
-        const targetNoteIndex = [...notesList.children].indexOf(div);
-        moveNoteToNewPosition(draggingNoteIndex, targetNoteIndex);
-    });
-
-    // Handle drag over event
-    div.addEventListener('dragover', function(event) {
-        event.preventDefault(); // Allow dropping
-        const draggingNote = document.querySelector('.dragging');
-        const afterElement = getDragAfterElement(notesList, event.clientY);
-        if (afterElement == null) {
-            notesList.appendChild(draggingNote);
-        } else {
-            notesList.insertBefore(draggingNote, afterElement);
-        }
-    });
-
-    // Create another div to hold the note text and delete button
     const noteItemContent = document.createElement("div");
     noteItemContent.className = "note-item-content";
     noteItemContent.id = "note-item-content-" + index;
 
-    // Create and append the note text span to noteItemContent
     const noteTextContainer = document.createElement("div");
     noteTextContainer.className = "text-container";
     noteTextContainer.id = "text-container-" + index;
@@ -126,10 +151,9 @@ function createNoteElement(note, index) {
     const noteText = document.createElement("span");
     noteText.className = "list-text";
     noteText.id = "list-text-" + index;
-    noteText.textContent = note.text; // Ensure the text content is set correctly
+    noteText.textContent = note;
     noteText.setAttribute('contenteditable', 'true');
 
-    // Add event listener to persist changes
     noteText.addEventListener('blur', function() {
         updateNote(index, this.textContent);
     });
@@ -143,25 +167,19 @@ function createNoteElement(note, index) {
     buttonsBox.style.position = 'sticky';
     buttonsBox.style.top = '10px';
 
-    // Create and append the check button to the buttonBox
     const checkButton = createCheckButton(index, note);
     buttonsBox.appendChild(checkButton);
 
-    // Create and append the play button to the buttonBox
-    const playButton = createPlayButton(note.text, index);
+    const playButton = createPlayButton(note, index);
     buttonsBox.appendChild(playButton);
 
-    // Create and append the copy button to the buttonBox
-    const copyButton = createCopyButton(note.text, index);
+    const copyButton = createCopyButton(note, index);
     buttonsBox.appendChild(copyButton);
 
     const deleteButton = createDeleteButton(index);
     buttonsBox.appendChild(deleteButton);
 
-    // Append the delete button to noteItemContent
     noteItemContent.appendChild(buttonsBox);
-
-    // Append noteItemContent to the main div
     div.appendChild(noteItemContent);
 
     const explanationTray = document.createElement("div");
@@ -194,11 +212,23 @@ function createDeleteButton(index) {
     // Create a div for the "x" text inside the delete button
     const xText = document.createElement("i");
     xText.className = "fa-solid fa-x";
-    xText.style.color = "white"
+    xText.style.color = "white";
     deleteButton.appendChild(xText);
 
-    deleteButton.addEventListener("click", () => deleteNote(index));
+    deleteButton.addEventListener("click", () => {
+        deleteNoteAndRemoveTooltip(index);
+    });
     return deleteButton;
+}
+
+function deleteNoteAndRemoveTooltip(index) {
+    deleteNote(index);
+
+    // Remove any tooltips that might be lingering
+    const tooltip = document.querySelector('.tooltip');
+    if (tooltip) {
+        tooltip.remove();
+    }
 }
 
 function createCopyButton(note, index) {
@@ -889,6 +919,12 @@ function attachTooltips() {
     };
 
     document.body.addEventListener('mouseover', function(event) {
+        // Remove existing tooltips to avoid multiple tooltips on screen
+        const existingTooltip = document.querySelector('.tooltip');
+        if (existingTooltip) {
+            existingTooltip.remove();
+        }
+
         // Find the closest button parent or the target if it's directly a button
         const targetButton = event.target.closest('div');
         if (targetButton && tooltipsInfo[targetButton.className]) {
@@ -903,19 +939,36 @@ function attachTooltips() {
             tooltip.style.borderRadius = '4px';
             tooltip.style.pointerEvents = 'none'; // Prevent the tooltip from blocking clicks
             tooltip.style.zIndex = '1000';
-            tooltip.style.top = `${event.pageY - 30}px`;
-            tooltip.style.left = `${event.pageX - 40}px`;
+
+            // Set tooltip position
+            const setPosition = (event) => {
+                tooltip.style.top = `${event.pageY - 30}px`;
+                tooltip.style.left = `${event.pageX - 40}px`;
+            };
+
+            setPosition(event);
 
             // Append tooltip to the body
             document.body.appendChild(tooltip);
 
+            // Update tooltip position on mousemove
+            const updatePosition = (event) => {
+                setPosition(event);
+            };
+
+            document.addEventListener('mousemove', updatePosition);
+
             // Remove tooltip on mouseout
             targetButton.addEventListener('mouseout', () => {
                 tooltip.remove();
+                document.removeEventListener('mousemove', updatePosition);
             }, { once: true });
         }
     });
 }
+
+// Call the function to attach tooltips
+attachTooltips();
 
 
 

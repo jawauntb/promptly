@@ -184,7 +184,20 @@ section{
     gap: 30px;
     cursor: pointer;
 }
+.dragging {
+    opacity: 0.5;
+}
 
+.drag-over {
+    border: dashed 2px #000;
+}
+
+.placeholder {
+    border: 2px dashed #ccc;
+    margin: 10px 0;
+    height: 40px; /* Adjust based on your note item height */
+    background-color: #f8f8f8;
+}
 /* Text Input */
 .text-input {
     width: 100%; /* Adjusted to take full width of the input area */
