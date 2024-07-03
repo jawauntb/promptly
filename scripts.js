@@ -35,6 +35,7 @@ function retrieveNotes(callback) {
 function loadNotes() {
     retrieveNotes(notes => {
         notesList.innerHTML = "";
+        notes.reverse();
         notes.forEach((note, index) => {
             const li = createNoteElement(note, index);
             notesList.appendChild(li);
@@ -242,8 +243,8 @@ function createCheckButton(index, note) {
         if (selectedNotes.includes(noteText)) {
             // If the note is already selected, deselect it
             selectedNotes.splice(selectedNotes.indexOf(noteText), 1);
-            checkIcon.style.color = "white";
             checkButton.classList.remove('selected');
+            checkIcon.style.color = "white";
         } else {
             // Otherwise, select the note
             selectedNotes.push(noteText);
@@ -398,7 +399,7 @@ function displayFeedback(feedbackList) {
     feedbackDiv.innerHTML = '';
     if (!feedbackList.length) {
         const p = document.createElement("p");
-        p.textContent = "This site does not appear to be relevant to any of your stated notes"
+        p.textContent = "This site does not seem related to your notes"
         feedbackDiv.appendChild(p);
     }
 }
@@ -576,16 +577,16 @@ async function makeOverlapAPIRequest(texts, callback) {
             const differences = data.difference;
 
             // Convert differences object into a formatted string
-            let differencesText = "";
+            let differencesText = "** ";
             Object.keys(differences).forEach((key, index) => {
-                differencesText += `\n${parseInt(key) + 1}. [${differences[key].join(", ")}]`;
+                differencesText += `${parseInt(key) + 1}. [${differences[key].join(", ")}]`;
                 if (index < Object.keys(differences).length - 1) {
                     differencesText += "; ";
                 }
             });
 
             // Prepare the complete response text
-            const overlapResponse = `###Note Intersections:\n ${intersection} \n ###Note Differences:\n ${differencesText}.`;
+            const overlapResponse = `###Similarities: </br></br> **${intersection}** \n ###Differences: </br> ${differencesText}.**`;
             callback(overlapResponse); // Send back the overlapping ideas
         } else {
             console.error('Unexpected API response:', data);
@@ -835,8 +836,7 @@ function attachTooltips() {
         'check-button selected': 'Deselect Note',
         'composition-clear': 'Clear Selection',
         'composition-question': 'Generate Questions Based on Selection',
-        'composition-unique': 'Get Unique Ideas in each',
-        'composition-overlap': 'Get Overlapping Ideas in each'
+        'composition-unique': 'Get Similarities and Differences',
     };
 
     document.body.addEventListener('mouseover', function(event) {
